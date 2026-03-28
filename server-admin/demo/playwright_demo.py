@@ -19,7 +19,7 @@ def demo():
         browser.close()
 
 
-demo()
+# demo()
 
 async def mcp_demo():
     context = {
@@ -36,7 +36,7 @@ async def mcp_demo():
     # 使用大模型连接mcp执行任务
     from langchain_openai import ChatOpenAI
     llm = ChatOpenAI(
-        model="qwen3-max",
+        model="qwen3.5-plus",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
         api_key="sk-1a1085539a654a3eaf15ec230b086136"
     )
@@ -59,7 +59,7 @@ async def mcp_demo():
             return agent_response['messages'][-1].content
 
 
-# asyncio.run(mcp_demo())
+asyncio.run(mcp_demo())
 
 from HDT.config.dev_settings import PLAYWRIGHT_MCP_SERVER, MOBILE_MCP_SERVER, PLAYWRIGHT_MCP_FILE_PATH, \
     MOBILE_MCP_FILE_PATH
