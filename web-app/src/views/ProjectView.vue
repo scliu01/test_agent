@@ -4,7 +4,7 @@
             <el-header height="80px">
                 <div class="logo-container">
                     <img class="logo" src="/logo.png" alt="华测教育">
-                    <span>华测 AI+项目中心</span>
+                    <span>AI测试平台</span>
                 </div>
             </el-header>
             <el-main>
@@ -62,17 +62,17 @@
                 <el-row>
                     <el-col :span="24" justify="center" align="middle">
                         <el-text>
-                            © 2025 华测教育 - AI智能测试研究院.版权所有
+                            © 2026 智能体 - AI测试工具开发
                         </el-text>
                     </el-col>
                 </el-row>
-                <el-row>
+                <!-- <el-row>
                     <el-col :span="24" justify="center" align="middle">
                         <el-text>
-                            湘ICP备2020018694号
+                            XXXXX
                         </el-text>
                     </el-col>
-                </el-row>
+                </el-row> -->
             </el-footer>
         </el-container>
     </div>

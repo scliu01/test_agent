@@ -5,7 +5,9 @@ import { ElLoading, ElMessage, ElNotification } from 'element-plus';
 // 创建axios实例
 const service = axios.create({
 	// 设置服务器地址和端口号
-	baseURL: 'http://127.0.0.1:5001',
+	// baseURL: 'http://127.0.0.1:5001',
+	baseURL: 'http://8.162.0.206:5001',
+	// baseURL: 'http://www.agentscl.cn:5001',
 });
 const nums = ref(0);
 const loading = ref(null);

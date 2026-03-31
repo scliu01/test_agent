@@ -256,8 +256,7 @@ def process_with_ai_stream():
         hint = request.json.get("hint")
         project_id = request.json.get("project_id")
         # 打印接收的参数
-        print(
-            f"接收到的参数: primary_content={primary_content}, second_content={second_content}, hint={hint}, project_id={project_id}")
+        print(f"接收到的参数: primary_content={primary_content}, second_content={second_content}, hint={hint}, project_id={project_id}")
 
         if not primary_content:
             return respModel.error_resp(msg="缺少必填参数: primary_content")
@@ -333,7 +332,10 @@ def process_with_ai_stream():
                             "content": content,
                             "full_content": full_content
                         }) + "\n"
-
+                print("full_content", full_content)
+                if not full_content.startswith("```json"):  # AI脑残返回处理
+                    # 重新赋值：开头加 ```json，结尾加 ```
+                    full_content = f"```json{full_content}```"
                 # 尝试解析JSON
                 try:
                     json_data = re.search(r"```json(.*?)```", full_content, re.DOTALL)
@@ -365,8 +367,7 @@ def process_with_ai_stream():
                 }) + "\n"
 
         # 返回流式响应
-        return Response(generate(), mimetype='text/plain',
-                        headers={'X-Accel-Buffering': 'no'})  # 禁用Nginx缓冲
+        return Response(generate(), mimetype='text/plain', headers={'X-Accel-Buffering': 'no'})  # 禁用Nginx缓冲
     except Exception as e:
         traceback.print_exc()
         return respModel.error_resp(msg=f"AI处理失败: {str(e)}")

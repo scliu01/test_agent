@@ -6,12 +6,14 @@ from sqlalchemy.sql.functions import count
 
 def demo01():
     # 创建OpenAI客户端
-    ai_client = OpenAI(api_key="sk-1a1085539a654a3eaf15ec230b086136",
-                       base_url="https://dashscope.aliyuncs.com/compatible-mode/v1")
+    ai_client = OpenAI(api_key="sk-1a1085539a654a3eaf15ec230b086136", base_url="https://dashscope.aliyuncs.com/compatible-mode/v1")
+    # ai_client = OpenAI(api_key="/", base_url="http://host.docker.internal:11488/v1")
     ai_prompt = "你是谁"
     # 组装提示词
     response = ai_client.chat.completions.create(
-        model="qwen3-max",
+        model="qwen3-max-preview",
+        # model="deepseek-r1:8b",
+        # model="bge-m3:latest",
         messages=[
             {"role": "system", "content": "上下文"},
             {"role": "user", "content": ai_prompt},
@@ -22,7 +24,7 @@ def demo01():
     print("content", content)
 
 
-# demo01()
+demo01()
 # demo01()
 
 def gen_test_data():
@@ -128,6 +130,7 @@ def gen_test_data_stream():
 # gen_test_data_stream()
 
 def load_prompt(temp_folder: str, name: str, context: dict):
+    """解析AI返回的文本"""
     from os import path
     # 可以渲染模板，将模板中的变量替换成实际值
     from jinja2 import Environment, FileSystemLoader

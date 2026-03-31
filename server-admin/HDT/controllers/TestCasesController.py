@@ -243,8 +243,7 @@ def process_with_ai_stream():
         hint = request.json.get("hint")
         project_id = request.json.get("project_id")
         # 打印接收的参数
-        print(
-            f"接收到的参数: primary_content={primary_content}, second_content={second_content}, hint={hint}, project_id={project_id}")
+        print(f"接收到的参数: primary_content={primary_content}, second_content={second_content}, hint={hint}, project_id={project_id}")
 
         if not primary_content:
             return respModel.error_resp(msg="缺少必填参数: primary_content")
@@ -279,7 +278,7 @@ def process_with_ai_stream():
 
         # 加载图片处理提示词
         image_parse_prompt = load_prompt("../prompts", "提示词-需求图片AI解析.txt", {})
-        print(f"生成的提示词: {image_parse_prompt}")
+        # print(f"生成的提示词: {image_parse_prompt}")
         # 将需求文档中的图片内容转换成文字描述
         primary_doc_content = parse_markdown(primary_doc.content, project.lvm_key, project.lvm_url, project.lvm_model,
                                              image_parse_prompt)
@@ -294,7 +293,7 @@ def process_with_ai_stream():
             "second_content": "\n".join(secondary_contents),
             "hint": hint,
         })
-        print(f"生成的提示词: {ai_prompt}")
+        # print(f"生成的提示词: {ai_prompt}")
 
         # 设置流式响应
         def generate():
@@ -305,28 +304,33 @@ def process_with_ai_stream():
                     messages=[{"role": "user", "content": ai_prompt}],
                     stream=True
                 )
-
                 # 发送初始消息
                 yield json.dumps({"status": "start", "content": "开始生成内容"}) + "\n"
 
                 full_content = ""
-                for chunk in stream:
-                    if chunk.choices[0].delta.content is not None:
-                        content = chunk.choices[0].delta.content
-                        full_content += content
+                for chunk in stream:  # 迭代流式数据
+                    if chunk.choices[0].delta.content is not None:  # 如果有内容，则添加到full_content中
+                        content = chunk.choices[0].delta.content  # 获取内容
+                        # print("content:", content)
+                        full_content += content  # 添加到full_content中
                         # 发送流式数据
                         yield json.dumps({
                             "status": "streaming",
                             "content": content,
                             "full_content": full_content
-                        }) + "\n"
-
+                        }) + "\n"  # 发送流式数据
+                if not full_content.startswith("```json"):  # AI脑残返回处理
+                    # 重新赋值：开头加 ```json，结尾加 ```
+                    full_content = f"```json{full_content}```"
+                print("full_content:", full_content)
                 # 尝试解析JSON
                 try:
-                    json_data = re.search(r"```json(.*?)```", full_content, re.DOTALL)
+                    json_data = re.search(r"```json(.*?)```", full_content, re.DOTALL)  # 尝试解析JSON
+                    # json_data = json.loads(full_content)
+                    print("json_data:", json_data)
                     if json_data:
-                        json_content = json_data.group(1)
-                        parsed_data = json.loads(json_content)
+                        json_content = json_data.group(1)  # 获取JSON内容
+                        parsed_data = json.loads(json_content)  # 解析JSON
                         yield json.dumps({
                             "status": "completed",
                             "data": parsed_data,
@@ -352,8 +356,7 @@ def process_with_ai_stream():
                 }) + "\n"
 
         # 返回流式响应
-        return Response(generate(), mimetype='text/plain',
-                        headers={'X-Accel-Buffering': 'no'})  # 禁用Nginx缓冲
+        return Response(generate(), mimetype='text/plain', headers={'X-Accel-Buffering': 'no'})  # 禁用Nginx缓冲
     except Exception as e:
         traceback.print_exc()
         return respModel.error_resp(msg=f"AI处理失败: {str(e)}")

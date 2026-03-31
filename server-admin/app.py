@@ -11,7 +11,8 @@ from HDT.config.dev_settings import PLAYWRIGHT_MCP_FILE_PATH, MOBILE_MCP_FILE_PA
 # 创建Flask对象
 app_server = Flask(__name__)
 # 加载配置
-app_server.config.from_pyfile('HDT/config/dev_settings.py')
+# app_server.config.from_pyfile('HDT/config/dev_settings.py')
+app_server.config.from_pyfile('HDT/config/prod_settings.py')
 # 跨域处理，前后端对接时才会用到，提前在这里处理了
 CORS(app_server, resources=r'/*')
 # 数据库连接
@@ -124,4 +125,4 @@ if __name__ == '__main__':
     # debug=True：以debug的方式运行程序，当代码改动后，会自动更新服务
     # host="0.0.0.0"：设置服务的访问方式，0.0.0.0表示使用127.0.0.1、localhost和局域网IP访问
     # port=5000：指定端口号
-    app_server.run(debug=True, host="0.0.0.0", port=5001)
+    app_server.run(debug=False, host="0.0.0.0", port=5001)

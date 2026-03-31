@@ -324,7 +324,9 @@ def process_with_ai_stream():
                             "content": content,
                             "full_content": full_content
                         }) + "\n"
-
+                if not full_content.startswith("```json"):  # AI脑残返回处理
+                    # 重新赋值：开头加 ```json，结尾加 ```
+                    full_content = f"```json{full_content}```"
                 # 尝试解析JSON
                 try:
                     json_data = re.search(r"```json(.*?)```", full_content, re.DOTALL)

@@ -28,26 +28,28 @@ async def mcp_demo():
             {"action": "输入搜索关键词", "keyword": "Playwright"},
             {"action": "点击搜索按钮"},
         ],
-        "expected": "搜索结果中包含关键词 Playwright"
+        "expected": "搜索结果中包含关键词 Playwright",
+        "device_type": "android",
+        "mcp_file_path": r"/tmp/mobile_mcp",
     }
-    ai_prompt = load_prompt("../prompts", "提示词-WEB自动化测试执行.txt", context)
-    # ai_prompt = load_prompt("../prompts", "提示词-APP自动化测试执行.txt", context)
+    # ai_prompt = load_prompt("../prompts", "提示词-WEB自动化测试执行.txt", context)
+    ai_prompt = load_prompt("../prompts", "提示词-APP自动化测试执行.txt", context)
     print("ai_prompt", ai_prompt)
     # 使用大模型连接mcp执行任务
     from langchain_openai import ChatOpenAI
     llm = ChatOpenAI(
-        model="qwen3.5-plus",
+        model="qwen3-max-preview",
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
         api_key="sk-1a1085539a654a3eaf15ec230b086136"
     )
-    PLAYWRIGHT_MCP_SERVER = "http://localhost:8931/sse"
-    MOBILE_MCP_SERVER = "http://127.0.0.1:8932/mcp"
+    # PLAYWRIGHT_MCP_SERVER = "http://localhost:8931/sse"
+    MOBILE_MCP_SERVER = "http://localhost:8932/mcp"
     from langgraph.prebuilt import create_react_agent
     from langchain_mcp_adapters.tools import load_mcp_tools
     from mcp import ClientSession
     from mcp.client.sse import sse_client
     # 使用sse连接mcp服务器
-    async with sse_client(PLAYWRIGHT_MCP_SERVER) as streams:
+    async with sse_client(MOBILE_MCP_SERVER) as streams:
         async with ClientSession(streams[0], streams[1]) as session:
             await session.initialize()
             print("✅ Connected to MCP Server")
@@ -59,7 +61,7 @@ async def mcp_demo():
             return agent_response['messages'][-1].content
 
 
-asyncio.run(mcp_demo())
+# asyncio.run(mcp_demo())
 
 from HDT.config.dev_settings import PLAYWRIGHT_MCP_SERVER, MOBILE_MCP_SERVER, PLAYWRIGHT_MCP_FILE_PATH, \
     MOBILE_MCP_FILE_PATH
@@ -75,7 +77,8 @@ async def mcp_demo2():
         ],
         "expected": "搜索结果中包含关键词 Playwright",
         "mcp_file_path": PLAYWRIGHT_MCP_FILE_PATH,
-        # "device_type": "android"
+        "device_type": "android",
+        # "mcp_file_path": r"/tmp/mobile_mcp",
         # "device_type": "ios"
     }
     task_type = "mobile"  # mobile, web
@@ -88,11 +91,11 @@ async def mcp_demo2():
     if task_type == "mobile":
         mcp_server = MOBILE_MCP_SERVER
     ai_result = await mcp(ai_prompt, mcp_server, api_key="sk-1a1085539a654a3eaf15ec230b086136",
-                          base_url="https://dashscope.aliyuncs.com/compatible-mode/v1", model="qwen3-max")
+                          base_url="https://dashscope.aliyuncs.com/compatible-mode/v1", model="qwen3-max-preview")
     print("ai_result", ai_result)
 
 
-# asyncio.run(mcp_demo2())
+asyncio.run(mcp_demo2())
 
 
 from playwright.sync_api import sync_playwright
