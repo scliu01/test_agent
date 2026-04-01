@@ -51,9 +51,7 @@
                                     <el-option label="IOS设备" value="ios" />
                                 </el-select>
                                 <el-button type="primary" @click="handlePreparedTask"> 创建 AI 测试任务 </el-button>
-                                <el-button type="warning" @click="handleExecHistory">
-                                    AI 测试执行记录
-                                </el-button>
+                                <el-button type="warning" @click="handleExecHistory"> AI 测试执行记录 </el-button>
                             </div>
                         </div>
                     </template>

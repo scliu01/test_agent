@@ -30,7 +30,7 @@ async def mcp_demo():
         ],
         "expected": "搜索结果中包含关键词 Playwright",
         "device_type": "android",
-        "mcp_file_path": r"/tmp/mobile_mcp",
+        "mcp_file_path": r"http://8.162.0.206:5001/tmp/mobile_mcp",
     }
     # ai_prompt = load_prompt("../prompts", "提示词-WEB自动化测试执行.txt", context)
     ai_prompt = load_prompt("../prompts", "提示词-APP自动化测试执行.txt", context)
@@ -78,7 +78,7 @@ async def mcp_demo2():
         "expected": "搜索结果中包含关键词 Playwright",
         "mcp_file_path": PLAYWRIGHT_MCP_FILE_PATH,
         "device_type": "android",
-        # "mcp_file_path": r"/tmp/mobile_mcp",
+        # "mcp_file_path": r"http://8.162.0.206:5001/tmp/mobile_mcp",
         # "device_type": "ios"
     }
     task_type = "mobile"  # mobile, web

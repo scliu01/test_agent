@@ -28,7 +28,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 
 // 生产环境关闭 devtools
 if (import.meta.env.PROD) {
-  app.config.devtools = false
+  app.config.devtools = true
   app.config.debug = true // 关闭调试警告
 }
 

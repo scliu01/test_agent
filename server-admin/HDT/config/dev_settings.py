@@ -1,5 +1,7 @@
 # 开发环境--需要的配置，格式为mysql+pymysql://账号:密码@连接地址/数据库名称?连接参数
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@127.0.0.1:3306/test_agent_mysql?charset=utf8mb4'
+# SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@8.162.0.206:3306/test_agent_mysql?charset=utf8mb4'
+# 是否追踪数据库的修改
 SQLALCHEMY_TRACK_MODIFICATIONS = True
 # 打印sql语句
 SQLALCHEMY_ECHO = True

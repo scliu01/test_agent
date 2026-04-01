@@ -37,6 +37,16 @@ class TestCaseExecApi {
 		return request.post(`/${module_name}/prepared_task`, form);
 	}
 
+	/**
+	 * 复制 AI 测试任务
+	 * @param {Object} form - 包含执行类型和测试用例ID列表的表单数据
+	 * @param {string} form.exec_type - 执行类型，例如 'http'
+	 * @param {string} form.case_ids - 要执行的测试用例ID列表
+	 */
+	copy_task(form) {
+		return request.post(`/${module_name}/copy_task`, form);
+	}
+
 	update(form) {
 		return request.put(`/${module_name}/update`, form);
 	}

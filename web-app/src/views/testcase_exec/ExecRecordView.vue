@@ -9,12 +9,8 @@
                             <!-- 操作按钮区域 居右-->
                             <div class="action-buttons">
                                 <el-button type="primary" @click="handleBack"> 返回 </el-button>
-                                <el-button type="success" @click="loadData">
-                                    刷新
-                                </el-button>
-                                <el-button type="danger" @click="handleBatchDelete">
-                                    批量删除
-                                </el-button>
+                                <el-button type="success" @click="loadData"> 刷新 </el-button>
+                                <el-button type="danger" @click="handleBatchDelete"> 批量删除 </el-button>
                             </div>
                         </div>
                     </template>
@@ -34,12 +30,8 @@
                         </el-table-column>
                         <el-table-column label="操作" width="160" align="center">
                             <template #default="{ row }">
-                                <el-button link type="primary" @click="handleDelete(row)">
-                                    删除
-                                </el-button>
-                                <el-button link type="primary" @click="handlePreparedTask(row)">
-                                    复制执行
-                                </el-button>
+                                <el-button link type="primary" @click="handleDelete(row)"> 删除 </el-button>
+                                <el-button link type="primary" @click="handleCopyTask(row)"> 复制执行 </el-button>
                             </template>
                         </el-table-column>
                     </el-table>
@@ -261,8 +253,9 @@ async function handlePreparedTask(row) {
     let case_ids = ""
     let resData = res.data
     if (resData.code == 200) {
-        Object.assign(execForm, resData.data)
-        case_ids = resData.data.case_ids
+        Object.assign(execForm, resData.data)  // 复制执行记录参数
+        // console.log('resData.data.case_ids', resData.data.case_ids)
+        case_ids = resData.data.case_ids  // 提取测试用例ID
     }
     if (!case_ids) {
         return
@@ -272,6 +265,39 @@ async function handlePreparedTask(row) {
         case_ids: case_ids
     })
     console.log('handlePreparedTask res', res)
+    resData = res.data
+    if (resData.code == 200) {
+        // 刷新测试用例列表
+        // loadTestCases()
+        execForm.exec_param = resData.data
+        execForm.case_ids = case_ids
+        // 显示创建 AI 测试任务对话框
+        execInitFormVisible.value = true
+    } else {
+        ElMessage.error(resData.message)
+    }
+}
+
+async function handleCopyTask(row) {
+    // 根据id查询
+    let res = await api.queryById(row.id)
+    console.log('editItem', res.data)
+    let case_ids = ""
+    let resData = res.data
+    if (resData.code == 200) {
+        Object.assign(execForm, resData.data)  // 复制执行记录参数
+        console.log('resData.data.case_ids', resData.data.case_ids)
+        case_ids = resData.data.case_ids  // 提取测试用例ID
+    }
+    if (!case_ids) {
+        return
+    }
+    // 调用 API 复制 AI 测试任务
+    res = await api.copy_task({
+        exec_type: execForm.exec_type,
+        case_ids: case_ids
+    })
+    console.log('handleCopyTask res', res)
     resData = res.data
     if (resData.code == 200) {
         // 刷新测试用例列表
@@ -305,7 +331,8 @@ async function handleSave() {
 const viewDialogVisible = ref(false)
 const viewData = reactive({})
 // 服务器地址
-const server_url = "http://localhost:5001"
+// const server_url = "http://localhost:5001"
+const server_url = ""
 
 // 查看执行结果
 const handleView = async (row) => {

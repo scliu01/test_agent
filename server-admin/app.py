@@ -6,13 +6,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 
-from HDT.config.dev_settings import PLAYWRIGHT_MCP_FILE_PATH, MOBILE_MCP_FILE_PATH
+from HDT.config.prod_settings import PLAYWRIGHT_MCP_FILE_PATH, MOBILE_MCP_FILE_PATH
 
 # 创建Flask对象
 app_server = Flask(__name__)
 # 加载配置
 # app_server.config.from_pyfile('HDT/config/dev_settings.py')
 app_server.config.from_pyfile('HDT/config/prod_settings.py')
+# print(app_server.config)
 # 跨域处理，前后端对接时才会用到，提前在这里处理了
 CORS(app_server, resources=r'/*')
 # 数据库连接
@@ -62,6 +63,7 @@ def get_image_by_dir(dir_type, filename):
     else:
         abort(400, description=f"无效的目录类型，仅支持：{PLAYWRIGHT_MCP_FILE_PATH}和{MOBILE_MCP_FILE_PATH}")
 
+    print("target_dir:", target_dir)
     # 2. 解码中文文件名
     decoded_filename = decode_chinese_filename(filename)
     app_server.logger.info(f"解码后的文件名：{decoded_filename}（目标目录：{target_dir}）")
@@ -85,8 +87,7 @@ def get_image_by_dir(dir_type, filename):
         response.cache_control.no_cache = True
         response.cache_control.max_age = 0
         response.cache_control.public = False
-        response.headers[
-            'Content-Disposition'] = f'inline; filename*=UTF-8\'\'{urllib.parse.quote(os.path.basename(file_path))}'
+        response.headers['Content-Disposition'] = f'inline; filename*=UTF-8\'\'{urllib.parse.quote(os.path.basename(file_path))}'
         return response
     except Exception as e:
         app_server.logger.error(f"返回图片失败：{e}")
@@ -96,31 +97,31 @@ def get_image_by_dir(dir_type, filename):
 if __name__ == '__main__':
     # 注册路由模块
     from HDT.controllers import ProjectController
-    app_server.register_blueprint(ProjectController.module_route)
+    app_server.register_blueprint(ProjectController.module_route)  # 项目
 
     from HDT.controllers import TestDataTemplateController
-    app_server.register_blueprint(TestDataTemplateController.module_route)
+    app_server.register_blueprint(TestDataTemplateController.module_route)  # 生成测试数据模板
 
     from HDT.controllers import DocumentController
-    app_server.register_blueprint(DocumentController.module_route)
+    app_server.register_blueprint(DocumentController.module_route)  #  需求评审
 
     from HDT.controllers import ApiDocumentController
-    app_server.register_blueprint(ApiDocumentController.module_route)
+    app_server.register_blueprint(ApiDocumentController.module_route)  # 接口文档
 
     from HDT.controllers import TestCasesController
-    app_server.register_blueprint(TestCasesController.module_route)
+    app_server.register_blueprint(TestCasesController.module_route)  # UI测试用例
 
     from HDT.controllers import ApiTestCasesController
-    app_server.register_blueprint(ApiTestCasesController.module_route)
+    app_server.register_blueprint(ApiTestCasesController.module_route)  # 接口测试用例
 
     from HDT.controllers import ApiTestCasesExecController
-    app_server.register_blueprint(ApiTestCasesExecController.module_route)
+    app_server.register_blueprint(ApiTestCasesExecController.module_route)  # 接口测试用例执行
 
     from HDT.controllers import TestCasesExecController
-    app_server.register_blueprint(TestCasesExecController.module_route)
+    app_server.register_blueprint(TestCasesExecController.module_route)  # UI测试用例执行
 
     from HDT.controllers import PerformanceController
-    app_server.register_blueprint(PerformanceController.module_route)
+    app_server.register_blueprint(PerformanceController.module_route)  # 性能测试分析
 
     # debug=True：以debug的方式运行程序，当代码改动后，会自动更新服务
     # host="0.0.0.0"：设置服务的访问方式，0.0.0.0表示使用127.0.0.1、localhost和局域网IP访问

@@ -77,7 +77,6 @@ def queryByPage():
 
             # 按条件来查询
             datas = module_model.query.filter(*filter_list).limit(page_size).offset((page - 1) * page_size).all()
-            print("datas", datas)
             # 查询当前条件的数据总数
             total = module_model.query.filter(*filter_list).count()
             print(f"查询结果：{datas}")
@@ -318,7 +317,45 @@ def prepared_task():
     """ 创建测试执行任务 """
     print(f"接收到的参数：{request.json}")
     # 解析用例，返回需要补充的参数
+    case_ids = request.json.get("case_ids").split(",")  # 用例ID列表
+    try:
+        with app_server.app_context():
+            first_param = {"服务器地址": "", "登录凭据": ""}
+            list_case_param = [{
+                "case_id": 0,
+                "case_name": "AI自动化系统配置参数",
+                "case_param": first_param
+            }]
+            # 查询 TestCase 表
+            test_cases = TestCase.query.filter(TestCase.id.in_(case_ids)).all()
+            for test_case in test_cases:
+                case_param = []
+                case_param.extend(VarRender.get_params_name(test_case.steps))
+                case_param.extend(VarRender.get_params_name(test_case.expected))
+                print("case_param", case_param)
+                if "登录凭据" in case_param:
+                    case_param.remove("登录凭据")
+                # case_param 转 dict
+                if len(case_param) > 0:
+                    list_case_param.append({
+                        "case_id": test_case.id,
+                        "case_name": test_case.name,
+                        "case_param": {key: "" for key in case_param}
+                    }
+                    )
+        return respModel.ok_resp_simple_list(lst=list_case_param, msg="查询成功")
+    except Exception as e:
+        traceback.print_exc()
+        return respModel.error_resp(msg=f"添加失败:{e}")
+
+
+@module_route.route(f"/{module_name}/copy_task", methods=["POST"])
+def copy_task():
+    """ 复制执行任务 """
+    print(f"接收到的参数：{request.json}")
+    # 解析用例，返回需要补充的参数
     case_ids = request.json.get("case_ids").split(",")
+    print("case_ids:", case_ids)
     try:
         with app_server.app_context():
             # first_param = {"登录凭据": ""}
@@ -328,8 +365,9 @@ def prepared_task():
             #     "case_param": first_param
             # }]
             # 查询 TestCase 表
-            test_cases = TestCaseExec.query.filter(TestCaseExec.id.in_(case_ids)).all()
+            test_cases = TestCaseExec.query.filter(TestCaseExec.case_ids.in_(case_ids)).all()
             list_case_param = []
+            print("test_cases:", test_cases)
             for test_case in test_cases:
                 # case_param = []
                 # case_param.extend(VarRender.get_params_name(test_case.steps))
@@ -346,8 +384,8 @@ def prepared_task():
                         # "case_param": {key: "", for key in test_case.case_param}
                         "case_param": {key: value for key, value in record["case_param"].items()}
                     })
+        print("list_case_param:", list_case_param)
         return respModel.ok_resp_simple_list(lst=list_case_param, msg="查询成功")
     except Exception as e:
         traceback.print_exc()
         return respModel.error_resp(msg=f"添加失败:{e}")
-
