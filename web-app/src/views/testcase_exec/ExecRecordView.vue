@@ -69,8 +69,7 @@
         </el-form>
         <el-divider content-position="center">用例参数配置</el-divider>
         <el-collapse>
-            <el-collapse-item v-for="(item, index) in execForm.exec_param" :title="item.case_id + '.' + item.case_name"
-                :key="index">
+            <el-collapse-item v-for="(item, index) in execForm.exec_param" :title="item.case_id + '.' + item.case_name" :key="index">
                 <el-form-item v-for="(value, key) in item.case_param" :label="key" :label-width="160">
                     <el-input v-model="item.case_param[key]" placeholder="请输入参数值" :value="value" />
                 </el-form-item>
@@ -79,9 +78,7 @@
         <template #footer>
             <div class="dialog-footer">
                 <el-button @click="execInitFormVisible = false">取消</el-button>
-                <el-button type="primary" @click="handleSave">
-                    提交
-                </el-button>
+                <el-button type="primary" @click="handleSave">提交</el-button>
             </div>
         </template>
     </el-dialog>

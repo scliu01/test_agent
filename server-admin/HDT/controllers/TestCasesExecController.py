@@ -321,29 +321,31 @@ def prepared_task():
     case_ids = request.json.get("case_ids").split(",")
     try:
         with app_server.app_context():
-            first_param = {"登录凭据": ""}
-            list_case_param = [{
-                "case_id": 0,
-                "case_name": "AI自动化系统配置参数",
-                "case_param": first_param
-            }]
-            # 查询 TestCase 表 
-            test_cases = TestCase.query.filter(TestCase.id.in_(case_ids)).all()
+            # first_param = {"登录凭据": ""}
+            # list_case_param = [{
+            #     "case_id": 0,
+            #     "case_name": "AI自动化系统配置参数",
+            #     "case_param": first_param
+            # }]
+            # 查询 TestCase 表
+            test_cases = TestCaseExec.query.filter(TestCaseExec.id.in_(case_ids)).all()
+            list_case_param = []
             for test_case in test_cases:
-                case_param = []
-                case_param.extend(VarRender.get_params_name(test_case.steps))
-                case_param.extend(VarRender.get_params_name(test_case.expected))
-                print("case_param", case_param)
-                if "登录凭据" in case_param:
-                    case_param.remove("登录凭据")
-                # case_param 转 dict
-                if len(case_param) > 0:
+                # case_param = []
+                # case_param.extend(VarRender.get_params_name(test_case.steps))
+                # case_param.extend(VarRender.get_params_name(test_case.expected))
+                # case_param.extend(VarRender.get_params_name(test_case.exec_param))
+                result_list = json.loads(test_case.exec_param)
+                print("result_list：", result_list)
+                for record in result_list:
+                    # if record["case_name"] != "AI自动化系统配置参数":
+                        # case_param.remove("登录凭据")
                     list_case_param.append({
-                        "case_id": test_case.id,
-                        "case_name": test_case.name,
-                        "case_param": {key: "" for key in case_param}
-                    }
-                    )
+                        "case_id": record["case_id"],
+                        "case_name": record["case_name"],
+                        # "case_param": {key: "", for key in test_case.case_param}
+                        "case_param": {key: value for key, value in record["case_param"].items()}
+                    })
         return respModel.ok_resp_simple_list(lst=list_case_param, msg="查询成功")
     except Exception as e:
         traceback.print_exc()
