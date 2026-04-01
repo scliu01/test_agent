@@ -29,7 +29,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 // 生产环境关闭 devtools
 if (import.meta.env.PROD) {
   app.config.devtools = false
-  app.config.debug = false // 关闭调试警告
+  app.config.debug = true // 关闭调试警告
 }
 
 app.config.globalProperties.$echarts = echarts; // 挂载到全局

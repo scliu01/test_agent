@@ -117,6 +117,8 @@ function goBack() {
 
 .el-main {
     flex: 1;
+    flex-basis: 0 !important;
+    padding: 10px;
 }
 
 

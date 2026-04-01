@@ -821,6 +821,8 @@ onMounted(() => {
 <style scoped>
 .el-aside {
     height: 100%;
+    padding: 10px;
+    border-radius: 35px
 }
 
 .tree-panel {
@@ -862,8 +864,8 @@ onMounted(() => {
 
 /* 处理对齐 */
 .el-main {
-    padding-top: 0;
-    flex-basis: none;
+    flex-basis: 0 !important;
+    padding: 10px;
 }
 
 .card-header {

@@ -2,7 +2,7 @@
     <div class="ai-employee-center">
         <!-- 页面标题 -->
         <div class="page-header">
-            <h1 class="page-title">智能“数字员工”中心，让测试“降本增效”</h1>
+            <h1 class="page-title">智能一体化测试工具</h1>
             <p class="page-subtitle"></p>
         </div>
 
