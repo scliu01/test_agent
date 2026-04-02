@@ -8,7 +8,7 @@ import pandas as pd
 from flask import Blueprint, request, send_file
 from openai import OpenAI
 
-from HDT.config.dev_settings import PLAYWRIGHT_MCP_SERVER, MOBILE_MCP_SERVER, PLAYWRIGHT_MCP_FILE_PATH, \
+from HDT.config.prod_settings import PLAYWRIGHT_MCP_SERVER, MOBILE_MCP_SERVER, PLAYWRIGHT_MCP_FILE_PATH, \
     MOBILE_MCP_FILE_PATH
 from HDT.models.projects import Project
 from HDT.utils import VarRender, json_utils, ai_utils
@@ -159,6 +159,7 @@ def insert():
             return respModel().error_resp(msg="用例ID不能为空")
         with app_server.app_context():
             request.json["id"] = None  # ID自增长
+            # request.json["case_ids"] = ",".join(request.json["case_ids"])
             request.json["exec_param"] = json.dumps(request.json["exec_param"], ensure_ascii=False)
             if request.json.get("exec_status") is None:
                 request.json["exec_status"] = "初始化"
@@ -169,6 +170,7 @@ def insert():
             # 获取新增后的ID并返回
             database.session.flush()
             data_id = data.id
+            print(f"新增后的ID:{data_id}")
             database.session.commit()
         # 使用线程池运行异步函数
         executor.submit(asyncio.run, execute(data_id))
@@ -187,6 +189,7 @@ executor = ThreadPoolExecutor(3)
 async def execute(data_id):
     """执行测试任务"""
     with app_server.app_context():
+        print(f"执行任务ID:{data_id}")
         # 从数据库查询执行任务信息
         exec_task = module_model.query.filter_by(id=data_id).first()
         print("exec_task", exec_task.to_dict())
@@ -200,7 +203,8 @@ async def execute(data_id):
             # 提交数据库更新
             database.session.commit()
             # 解析用例ID字符串为列表
-            exec_task.case_ids = exec_task.case_ids.split(",")
+            # exec_task.case_ids = exec_task.case_ids.split(",")
+            case_ids_list = exec_task.case_ids.split(",")
 
             # 解析执行任务中的用例参数
             params = json.loads(exec_task.exec_param)
@@ -219,7 +223,8 @@ async def execute(data_id):
             # 执行失败的用例数
             failed_count = 0
             # 执行测试用例
-            for case_id in exec_task.case_ids:
+            # for case_id in exec_task.case_ids:
+            for case_id in case_ids_list:
                 try:
                     # 查询出需要执行的测试用例数据
                     test_case = TestCase.query.filter_by(id=case_id).first()
@@ -263,8 +268,10 @@ async def execute(data_id):
                     # 拼接截图完整路径
                     full_image_files = []
                     image_files = result.get("image_files", [])
+                    print("image_files:", image_files)
                     for image_file in image_files:
                         mcp_file_path = context['mcp_file_path']
+                        print("mcp_file_path:", mcp_file_path)
                         # 当前图片文件路径不是以 mcp_file_path 开头时，拼接完整路径
                         if not image_file.startswith(mcp_file_path):
                             image_file = f"{mcp_file_path}/{image_file}"
@@ -281,7 +288,8 @@ async def execute(data_id):
                     })
 
                     # 更新执行任务状态并保存到数据库中
-                    exec_task.exec_status = f"执行中..{success_count + failed_count}/{len(exec_task.case_ids)}"
+                    # exec_task.exec_status = f"执行中..{success_count + failed_count}/{len(exec_task.case_ids)}"
+                    exec_task.exec_status = f"执行中..{success_count + failed_count}/{len(case_ids_list)}"
                     exec_task.updated_at = datetime.strftime(datetime.today(), '%Y-%m-%d %H:%M:%S')
                     database.session.commit()
                 except Exception as e:
@@ -355,7 +363,9 @@ def copy_task():
     print(f"接收到的参数：{request.json}")
     # 解析用例，返回需要补充的参数
     case_ids = request.json.get("case_ids").split(",")
-    print("case_ids:", case_ids)
+    # print("case_ids:", case_ids)
+    case_exec_id = request.json.get("id")
+    # print("case_exec_id:", case_exec_id)
     try:
         with app_server.app_context():
             # first_param = {"登录凭据": ""}
@@ -365,26 +375,28 @@ def copy_task():
             #     "case_param": first_param
             # }]
             # 查询 TestCase 表
-            test_cases = TestCaseExec.query.filter(TestCaseExec.case_ids.in_(case_ids)).all()
+            test_cases = TestCaseExec.query.filter_by(id=case_exec_id).first()
+            if not test_cases:
+                return respModel.error_resp(msg=f"用例ID {case_exec_id} 不存在")
             list_case_param = []
-            print("test_cases:", test_cases)
-            for test_case in test_cases:
+            # print("test_cases:", test_cases)
+            # for test_case in test_cases:
                 # case_param = []
                 # case_param.extend(VarRender.get_params_name(test_case.steps))
                 # case_param.extend(VarRender.get_params_name(test_case.expected))
                 # case_param.extend(VarRender.get_params_name(test_case.exec_param))
-                result_list = json.loads(test_case.exec_param)
-                print("result_list：", result_list)
-                for record in result_list:
-                    # if record["case_name"] != "AI自动化系统配置参数":
-                        # case_param.remove("登录凭据")
-                    list_case_param.append({
-                        "case_id": record["case_id"],
-                        "case_name": record["case_name"],
-                        # "case_param": {key: "", for key in test_case.case_param}
-                        "case_param": {key: value for key, value in record["case_param"].items()}
-                    })
-        print("list_case_param:", list_case_param)
+            result_list = json.loads(test_cases.exec_param)
+            # print("result_list：", result_list)
+            for record in result_list:
+                # if record["case_name"] != "AI自动化系统配置参数":
+                    # case_param.remove("登录凭据")
+                list_case_param.append({
+                    "case_id": record["case_id"],
+                    "case_name": record["case_name"],
+                    # "case_param": {key: "", for key in test_case.case_param}
+                    "case_param": {key: value for key, value in record["case_param"].items()}
+                })
+        # print("list_case_param:", list_case_param)
         return respModel.ok_resp_simple_list(lst=list_case_param, msg="查询成功")
     except Exception as e:
         traceback.print_exc()

@@ -278,6 +278,7 @@ async function handlePreparedTask(row) {
     }
 }
 
+// 复制 AI 测试任务
 async function handleCopyTask(row) {
     // 根据id查询
     let res = await api.queryById(row.id)
@@ -295,7 +296,8 @@ async function handleCopyTask(row) {
     // 调用 API 复制 AI 测试任务
     res = await api.copy_task({
         exec_type: execForm.exec_type,
-        case_ids: case_ids
+        id: row.id,
+        case_ids: case_ids,
     })
     console.log('handleCopyTask res', res)
     resData = res.data
@@ -347,7 +349,7 @@ const handleView = async (row) => {
                 viewData.details = JSON.parse(viewData.details)
                 // 拼接正确的图片附件地址
                 viewData.details.forEach(element => {
-                    console.log('element.attachments前', element.attachments);
+                    // console.log('element.attachments前', element.attachments);
                     element.attachments = element.attachments.map(item => `${server_url + item}`);
                     console.log('element.attachments后', element.attachments);
                 });

@@ -4,6 +4,7 @@ import urllib
 from flask import Flask, abort, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from starlette.staticfiles import StaticFiles
 from werkzeug.utils import secure_filename
 
 from HDT.config.prod_settings import PLAYWRIGHT_MCP_FILE_PATH, MOBILE_MCP_FILE_PATH
@@ -21,7 +22,15 @@ database = SQLAlchemy()
 database.init_app(app_server)
 
 # ========== 核心配置（根据你的实际路径修改） ==========
+# ================= 静态文件映射（G 盘）=================
+@app_server.route("/tmp/playwright_mcp/<filename>")
+def serve_playwright_img(filename):
+    return send_from_directory("E:/tmp/playwright_mcp", filename)
 
+@app_server.route("/tmp/mobile_mcp/<filename>")
+def serve_mobile_img(filename):
+    return send_from_directory("E:/tmp/mobile_mcp", filename)
+# ======================================================
 # 允许访问的图片格式
 ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'bmp']
 
@@ -126,4 +135,5 @@ if __name__ == '__main__':
     # debug=True：以debug的方式运行程序，当代码改动后，会自动更新服务
     # host="0.0.0.0"：设置服务的访问方式，0.0.0.0表示使用127.0.0.1、localhost和局域网IP访问
     # port=5000：指定端口号
+    # app_server.run(debug=True, use_reloader=False, host="0.0.0.0", port=5001)
     app_server.run(debug=True, host="0.0.0.0", port=5001)

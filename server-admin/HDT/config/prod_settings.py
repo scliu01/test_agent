@@ -7,10 +7,10 @@ SQLALCHEMY_ECHO = True
 SECRET_KEY = "1234567812345678"
 
 # mcp服务器地址
-PLAYWRIGHT_MCP_SERVER = "http://8.162.0.206:8931/sse"
-MOBILE_MCP_SERVER = "http://8.162.0.206:8932/mcp"
+PLAYWRIGHT_MCP_SERVER = "http://localhost:8931/sse"
+MOBILE_MCP_SERVER = "http://127.0.0.1:8932/mcp"
 
 # 要和mcp服务启动的目录一致，例如，npx -y @playwright/mcp@latest --isolated --browser chromium --port 8931 --viewport-size "1920,1080"  --host 0.0.0.0 --output-dir ~/tmp/playwright_mcp
 # 要最后的 --output-dir ~/tmp/playwright_mcp
-PLAYWRIGHT_MCP_FILE_PATH = r"/tmp/playwright_mcp"
-MOBILE_MCP_FILE_PATH = r"/tmp/mobile_mcp"
+PLAYWRIGHT_MCP_FILE_PATH = r"http://8.162.0.206:5001/tmp/playwright_mcp"
+MOBILE_MCP_FILE_PATH = r"http://8.162.0.206:5001/tmp/mobile_mcp"

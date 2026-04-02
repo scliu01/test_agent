@@ -5,8 +5,8 @@ class TestCaseExec(database.Model):
     __tablename__ = 'test_cases_exec'
     
     id = database.Column(database.Integer, primary_key=True, autoincrement=True)
-    project_id = database.Column(database.Integer, index=True)
-    name = database.Column(database.String(255))
+    project_id = database.Column(database.Integer, index=True, comment='项目ID')
+    name = database.Column(database.String(255), comment='名称')
     exec_type = database.Column(database.String(255), comment='类型')
     case_ids = database.Column(database.String(2048),  comment='关联用例ID')
     details = database.Column(database.Text, comment='详情')
