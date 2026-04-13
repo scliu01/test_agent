@@ -62,17 +62,17 @@
                 <el-row>
                     <el-col :span="24" justify="center" align="middle">
                         <el-text>
-                            © 2026 智能体 - AI测试工具开发
+                            © 2026 智能体 - 软件测试工具开发
                         </el-text>
                     </el-col>
                 </el-row>
-                <!-- <el-row>
+                <el-row>
                     <el-col :span="24" justify="center" align="middle">
                         <el-text>
-                            XXXXX
+                            湘ICP备2026010903号
                         </el-text>
                     </el-col>
-                </el-row> -->
+                </el-row>
             </el-footer>
         </el-container>
     </div>

@@ -255,15 +255,33 @@ async def execute(data_id):
                         context["mcp_file_path"] = MOBILE_MCP_FILE_PATH
                         ai_prompt = load_prompt("../prompts", "提示词-APP自动化测试执行.txt", context)
                         mcp_server = MOBILE_MCP_SERVER
-                    print("ai_prompt", ai_prompt)
-                    ai_result = await mcp(ai_prompt, mcp_server, project.llm_key, project.llm_url, project.llm_model)
-                    # 提取```json 中的数据
-                    str_result = re.search(r"```json(.*?)```", ai_result, re.DOTALL).group(1)
-                    result = json.loads(str_result)
-                    if result.get('success', False):
-                        success_count += 1
-                    else:
+                    print("ai_prompt:", ai_prompt)
+                    try:
+                        ai_result = await mcp(ai_prompt, mcp_server, project.llm_key, project.llm_url, project.llm_model)
+                        print("ai_result:", ai_result)
+                        # 提取```json 中的数据
+                        str_result = re.search(r"```json(.*?)```", ai_result, re.DOTALL).group(1)
+                        result = json.loads(str_result)
+                        if result.get('success', False):
+                            success_count += 1
+                        else:
+                            failed_count += 1
+                    except Exception as e:
+                        print(f"❌ 执行用例 {case_id} 失败: {e}")
                         failed_count += 1
+                        continue
+
+                    # 拼接截图完整路径
+                    full_image_files = []
+                    image_files = result.get("image_files", [])  # 获取截图文件列表
+                    print("image_files:", image_files)
+                    for image_file in image_files:
+                        mcp_file_path = context['mcp_file_path']
+                        print("mcp_file_path:", mcp_file_path)
+                        # 当前图片文件路径不是以 mcp_file_path 开头时，拼接完整路径
+                        if not image_file.startswith(mcp_file_path):
+                            image_file = f"{mcp_file_path}/{image_file}"
+                        full_image_files.append(image_file)
 
                     # 拼接截图完整路径
                     full_image_files = []
@@ -272,9 +290,12 @@ async def execute(data_id):
                     for image_file in image_files:
                         mcp_file_path = context['mcp_file_path']
                         print("mcp_file_path:", mcp_file_path)
-                        # 当前图片文件路径不是以 mcp_file_path 开头时，拼接完整路径
+                        # 提取文件名（处理Windows和Unix路径）
+                        import os
+                        filename = os.path.basename(image_file)
+                        # 拼接完整的URL路径
                         if not image_file.startswith(mcp_file_path):
-                            image_file = f"{mcp_file_path}/{image_file}"
+                            image_file = f"{mcp_file_path}/{filename}"
                         full_image_files.append(image_file)
 
                     details.append({

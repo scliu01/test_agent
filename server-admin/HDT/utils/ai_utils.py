@@ -91,6 +91,7 @@ def parse_markdown(markdown_text, llm_key, base_url, llm_model, prompt):
     """
     替换markdown中的图片为文字描述，并提取图片的alt文本
     """
+    os.environ["OLLAMA_TOOL_CALLS"] = "auto"  # 强制开启工具调用兼容
     # 匹配Base64图片的正则表达式
     pattern = r'!\[(.*?)\]\(data:image/(?:png|jpeg|gif);base64,(.*?)\)'
     import re
@@ -119,21 +120,107 @@ from langgraph.prebuilt import create_react_agent
 from langchain_mcp_adapters.tools import load_mcp_tools
 from mcp import ClientSession
 from mcp.client.sse import sse_client
-async def mcp(ai_prompt: str, mcp_server: str, api_key, base_url, model):
-    # 使用大模型连接mcp执行任务
+import asyncio
+# async def mcp(ai_prompt: str, mcp_server: str, api_key, base_url, model):
+#     # 使用大模型连接mcp执行任务
+#     llm = ChatOpenAI(
+#         model=model,
+#         base_url=base_url,
+#         api_key=api_key
+#     )
+#
+#     agent_response = None
+#     try:
+#         async with sse_client(mcp_server) as streams:
+#             async with ClientSession(streams[0], streams[1]) as session:
+#                 await session.initialize()
+#                 print("✅ 已连接playwright_cmp服务器")
+#                 tools = await load_mcp_tools(session)
+#                 agent = create_react_agent(llm, tools)
+#
+#                 try:
+#                     agent_response = await agent.ainvoke(input={"messages": ai_prompt}, config={"recursion_limit": 99})
+#                     print("✅ playwright_cmp返回:", agent_response['messages'][-1].content)
+#                 except Exception as e:
+#                     print(f"❌ playwright_cmp执行异常: {e}")
+#                     raise
+#     except Exception as e:
+#         print(f"❌ playwright_cmp连接异常: {e}")
+#         raise
+#
+#     if agent_response is None:
+#         raise RuntimeError("playwright_cmp未响应")
+#
+#     return agent_response['messages'][-1].content
+
+
+async def mcp(ai_prompt: str, mcp_server: str, api_key, base_url, model, timeout=300):
+    """
+    使用大模型连接MCP执行任务
+
+    Args:
+        ai_prompt: AI提示词
+        mcp_server: MCP服务器地址
+        api_key: API密钥
+        base_url: LLM基础URL
+        model: 模型名称
+        timeout: 超时时间（秒），默认300秒
+
+    Returns:
+        str: AI返回的结果
+    """
     llm = ChatOpenAI(
         model=model,
         base_url=base_url,
-        api_key=api_key
+        api_key=api_key,
+        temperature=0.1
     )
-    # 使用sse连接mcp服务器
-    async with sse_client(mcp_server) as streams:
-        async with ClientSession(streams[0], streams[1]) as session:
-            await session.initialize()
-            print("✅ Connected to MCP Server")
-            tools = await load_mcp_tools(session)
-            agent = create_react_agent(llm, tools)
-            agent_response = await agent.ainvoke(input={"messages": ai_prompt}, config={"recursion_limit": 99})
 
-            print("✅ Agent Response:", agent_response['messages'][-1].content)
-            return agent_response['messages'][-1].content
+    agent_response = None
+
+    try:
+        async with sse_client(url=mcp_server) as (read_stream, write_stream):
+            async with ClientSession(read_stream, write_stream) as session:
+                await session.initialize()
+                print("✅ 已连接playwright_mcp服务器")
+                tools = await load_mcp_tools(session)
+                print(f"✅ 加载了 {len(tools)} 个工具")
+                agent = create_react_agent(llm, tools)
+
+                try:
+                    agent_response = await asyncio.wait_for(
+                        agent.ainvoke(
+                            input={"messages": ai_prompt},
+                            config={"recursion_limit": 99, "max_iterations": 50}
+                        ),
+                        timeout=timeout
+                    )
+                    print("✅ playwright_mcp执行完成")
+                    if agent_response and 'messages' in agent_response:
+                        content = agent_response['messages'][-1].content
+                        print(f"✅ playwright_mcp返回: {content[:200]}...")
+                    else:
+                        print("⚠️ Agent返回格式异常:", agent_response)
+                except asyncio.TimeoutError:
+                    print(f"❌ playwright_mcp执行超时（{timeout}秒）")
+                    raise RuntimeError(f"MCP执行超时，请在{timeout}秒内完成任务")
+                except Exception as e:
+                    print(f"❌ playwright_mcp执行异常: {e}")
+                    raise
+    except Exception as e:
+        error_msg = str(e)
+        print(f"❌ playwright_mcp连接异常: {error_msg}")
+        if "400" in error_msg or "Bad Request" in error_msg:
+            raise RuntimeError(f"MCP服务器返回400错误，请检查服务器地址是否正确: {mcp_server}")
+        elif "Connection" in error_msg or "connect" in error_msg.lower():
+            raise RuntimeError(f"无法连接到MCP服务器: {mcp_server}，请检查服务是否正常运行")
+        else:
+            raise
+
+    if agent_response is None:
+        raise RuntimeError("playwright_mcp未响应")
+
+    if 'messages' not in agent_response or len(agent_response['messages']) == 0:
+        raise RuntimeError("Agent返回的消息为空")
+
+    return agent_response['messages'][-1].content

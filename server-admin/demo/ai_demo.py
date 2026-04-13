@@ -6,13 +6,13 @@ from sqlalchemy.sql.functions import count
 
 def demo01():
     # 创建OpenAI客户端
-    ai_client = OpenAI(api_key="sk-1a1085539a654a3eaf15ec230b086136", base_url="https://dashscope.aliyuncs.com/compatible-mode/v1")
-    # ai_client = OpenAI(api_key="/", base_url="http://host.docker.internal:11488/v1")
-    ai_prompt = "你是谁"
+    # ai_client = OpenAI(api_key="sk-1a1085539a654a3eaf15ec230b086136", base_url="https://dashscope.aliyuncs.com/compatible-mode/v1")
+    ai_client = OpenAI(api_key="/", base_url="http://127.0.0.1:11488/v1")
+    ai_prompt = "你是谁，以那个版本运行的，你能做什么？"
     # 组装提示词
     response = ai_client.chat.completions.create(
-        model="qwen3-max-preview",
-        # model="deepseek-r1:8b",
+        # model="qwen3-max-preview",
+        model="deepseek-r1:8b",
         # model="bge-m3:latest",
         messages=[
             {"role": "system", "content": "上下文"},

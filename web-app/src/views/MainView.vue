@@ -4,7 +4,7 @@
             <el-header height="80px">
                 <div class="logo-container">
                     <img class="logo" src="/logo.png" alt="AI测试平台">
-                    <span>AI测试平台+{{ agentName }}</span>
+                    <span>AI测试工具+{{ agentName }}</span>
                 </div>
                 <div>
                     <el-text class="project-name">
@@ -25,17 +25,17 @@
                 <el-row>
                     <el-col :span="24" justify="center" align="middle">
                         <el-text>
-                            © 2025 智能体 - 智能体工具开发
+                            © 2026 智能体 - 软件测试工具开发
                         </el-text>
                     </el-col>
                 </el-row>
-                <!-- <el-row>
+                <el-row>
                     <el-col :span="24" justify="center" align="middle">
                         <el-text>
-                            
+                            湘ICP备2026010903号
                         </el-text>
                     </el-col>
-                </el-row> -->
+                </el-row>
             </el-footer>
         </el-container>
     </div>
