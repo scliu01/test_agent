@@ -3,7 +3,7 @@
         <el-container>
             <el-header height="80px">
                 <div class="logo-container">
-                    <img class="logo" src="/logo.png" alt="AI测试平台">
+                    <img class="logo" src="/logo.png" alt="AI测试工具">
                     <span>AI测试工具+{{ agentName }}</span>
                 </div>
                 <div>

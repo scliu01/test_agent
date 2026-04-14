@@ -1,6 +1,7 @@
 import axios from 'axios';
-import { ref } from 'vue';
-import { ElLoading, ElMessage, ElNotification } from 'element-plus';
+// import { ref } from 'vue';
+// import { ElLoading, ElMessage, ElNotification } from 'element-plus';
+import { ElMessage } from 'element-plus';
 
 // 创建axios实例
 const service = axios.create({
@@ -8,37 +9,42 @@ const service = axios.create({
 	// baseURL: 'http://127.0.0.1:5001',
 	// baseURL: 'http://8.162.0.206:5001',
 	baseURL: 'http://www.agentscl.cn:5001',
+	// 生产环境：同域名部署，使用相对路径，无跨域无OPTIONS预请求
+	baseURL: '/api',
 });
-const nums = ref(0);
-const loading = ref(null);
 
-function open() {
-	if (nums.value <= 0) {
-		loading.value = ElLoading.service({
-			lock: true,
-			text: '加载中',
-			background: 'rgba(0, 0, 0, 0.05)',
-		});
-	}
-	nums.value++; // 记录数值加一
-}
+// 注释后关闭请求拦截和响应拦截
+// const nums = ref(0);
+// const loading = ref(null);
 
-function close() {
-	nums.value--; // 记录数值减1
-	if (nums.value <= 0) {
-		nums.value = 0;
-		loading.value.close();
-	}
-}
+// function open() {
+// 	if (nums.value <= 0) {
+// 		loading.value = ElLoading.service({
+// 			lock: true,
+// 			text: '加载中',
+// 			background: 'rgba(0, 0, 0, 0.05)',
+// 		});
+// 	}
+// 	nums.value++; // 记录数值加一
+// }
+
+// function close() {
+// 	nums.value--; // 记录数值减1
+// 	if (nums.value <= 0) {
+// 		nums.value = 0;
+// 		loading.value.close();
+// 	}
+// }
+
 
 // 添加请求拦截器
 service.interceptors.request.use(
 	(config) => {
-		open();
+		// open();//开启拦截
 		return config;
 	},
 	(error) => {
-		close();
+		// close();
 		ElMessage.error('网络异常，请稍后再试');
 		return Promise.reject(error);
 	}
@@ -47,13 +53,13 @@ service.interceptors.request.use(
 // 添加响应拦截器
 service.interceptors.response.use(
 	(response) => {
-		close();
+		// close();//开启拦截
 		// 打印请求信息以便调试
 		// console.log('请求成功:', response);
 		return response;
 	},
 	(error) => {
-		close();
+		// close();
 		// 打印错误信息以便调试
 		console.log('请求失败:', {
 			url: error.config?.url,

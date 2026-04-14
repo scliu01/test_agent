@@ -25,19 +25,19 @@ export default defineConfig({
     // },
 
 	
-	// build: {
-	// 	outDir: 'dist', // 打包输出目录
-	// 	assetsDir: 'static', // 静态资源目录
-	// 	sourcemap: false, // 关闭 sourcemap（安全！）
-	// 	minify: 'terser', // 代码压缩
-	// 	terserOptions: {
-	// 		compress: {
-	// 		drop_console: true, // 生产删除 console.log
-	// 		drop_debugger: true // 删除 debugger
-	// 		}
-	// 	},
-	// 	chunkSizeWarningLimit: 1500, // 取消打包体积警告
-	// },
+	build: {
+		outDir: 'dist', // 打包输出目录
+		assetsDir: 'static', // 静态资源目录
+		sourcemap: false, // 关闭 sourcemap（安全！）
+		minify: 'terser', // 代码压缩
+		terserOptions: {
+			compress: {
+			drop_console: true, // 生产删除 console.log
+			drop_debugger: true // 删除 debugger
+			}
+		},
+		chunkSizeWarningLimit: 1500, // 取消打包体积警告
+	},
 
 	server: {
 		allowedHosts: ['www.agentscl.cn'],

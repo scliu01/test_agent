@@ -3,8 +3,8 @@
         <el-container>
             <el-header height="80px">
                 <div class="logo-container">
-                    <img class="logo" src="/logo.png" alt="华测教育">
-                    <span>AI测试平台</span>
+                    <img class="logo" src="/logo.png" alt="测试工具">
+                    <span>AI测试工具</span>
                 </div>
             </el-header>
             <el-main>

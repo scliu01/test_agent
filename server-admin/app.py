@@ -16,7 +16,7 @@ app_server = Flask(__name__)
 app_server.config.from_pyfile('HDT/config/prod_settings.py')
 # print(app_server.config)
 # 跨域处理，前后端对接时才会用到，提前在这里处理了
-CORS(app_server, resources=r'/*')
+CORS(app_server, resources=r'/*', max_age=86400)  # 缓存预检结果24小时
 # 数据库连接
 database = SQLAlchemy()
 database.init_app(app_server)
@@ -136,4 +136,4 @@ if __name__ == '__main__':
     # host="0.0.0.0"：设置服务的访问方式，0.0.0.0表示使用127.0.0.1、localhost和局域网IP访问
     # port=5000：指定端口号
     # app_server.run(debug=True, use_reloader=False, host="0.0.0.0", port=5001)
-    app_server.run(debug=True, host="0.0.0.0", port=5001)
+    app_server.run(debug=False, host="0.0.0.0", port=5001)
