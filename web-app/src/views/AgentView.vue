@@ -66,7 +66,7 @@
                             <el-icon :size="96">
                                 <Plus />
                             </el-icon>
-                            <p class="description">更多智能体数字员工，会不断更新上线</p>
+                            <p class="description">待更新...</p>
                         </div>
                     </div>
                 </el-col>
@@ -221,7 +221,7 @@ const enterEmployee = (id) => {
     overflow: hidden;
     border: 1px solid rgba(0, 0, 0, 0.05);
     cursor: pointer;
-    height: 13.5vh;
+    /* height: 13.5vh; */
     /* 减去外边距 */
     display: flex;
     flex-direction: column;

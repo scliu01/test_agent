@@ -9,6 +9,7 @@ from openai import OpenAI
 
 from HDT.models.projects import Project
 from HDT.utils.ai_utils import parse_markdown, load_prompt
+from HDT.utils.json_utils import fix_unquoted_templates
 from HDT.utils.resp_model import respModel
 from app import app_server, database
 from HDT.models.api_test_case import ApiTestCase
@@ -341,7 +342,14 @@ def process_with_ai_stream():
                     json_data = re.search(r"```json(.*?)```", full_content, re.DOTALL)
                     if json_data:
                         json_content = json_data.group(1)
-                        parsed_data = json.loads(json_content)
+                        try:
+                            parsed_data = json.loads(json_content)
+                            print("parsed_data", parsed_data)
+                        except Exception as err:
+                            print("Json格式不正确开始修复", err)
+                            json_content = fix_unquoted_templates(json_content)
+                            parsed_data = json.loads(json_content)
+                            print("parsed_data", parsed_data)
                         yield json.dumps({
                             "status": "completed",
                             "data": parsed_data,

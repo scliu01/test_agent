@@ -100,32 +100,30 @@
                 </template>
                 <el-descriptions :column="1" label-width="100" border>
                     <!-- <el-descriptions-item label="测试步骤">{{ detail.steps }}</el-descriptions-item> -->
-                    <el-descriptions-item label="预期结果">{{ detail.expected }}</el-descriptions-item>
-                    <el-descriptions-item label="AI执行记录">{{ detail.ai_result }}</el-descriptions-item>
-                    <el-descriptions-item label="预期结果">{{ detail.expected }}</el-descriptions-item>
+                    <el-descriptions-item label="预期结果"><div class="response-content">{{ detail.expected }}</div></el-descriptions-item>
+                    <el-descriptions-item label="AI执行记录"><div class="response-content">{{ detail.ai_result }}</div></el-descriptions-item>
                 </el-descriptions>
 
-                <el-descriptions title="接口响应细节" :column="1" label-width="80" border>
-                    <el-descriptions-item label="状态码">{{ detail.response_info.status_code }}</el-descriptions-item>
-                    <el-descriptions-item label="响应头">{{ JSON.stringify(detail.response_info.headers)
-                    }}</el-descriptions-item>
-                    <el-descriptions-item label="响应内容">{{ detail.response_info.text }}</el-descriptions-item>
+                <el-descriptions title="接口响应细节" :column="1" label-width="100" border>
+                    <el-descriptions-item label="状态码"><div class="response-content">{{ detail.response_info.status_code }}</div></el-descriptions-item>
+                    <el-descriptions-item label="响应头"><div class="response-content">{{ JSON.stringify(detail.response_info.headers) }}</div></el-descriptions-item>
+                    <el-descriptions-item label="响应内容"><div class="response-content">{{ detail.response_info.text }}</div></el-descriptions-item>
                 </el-descriptions>
-                <el-descriptions title="接口请求细节" :column="1" label-width="80" border>
-                    <el-descriptions-item v-if='detail.steps["path"]' label="接口路径">{{ detail.steps["path"]
-                    }}</el-descriptions-item>
-                    <el-descriptions-item v-if='detail.steps["method"]' label="请求方式">{{ detail.steps["method"]
-                    }}</el-descriptions-item>
-                    <el-descriptions-item v-if='detail.steps["params"]' label="URL参数">{{ detail.steps["params"]
-                    }}</el-descriptions-item>
-                    <el-descriptions-item v-if='detail.steps["data"]' label="FORM">{{ detail.steps['data']
-                    }}</el-descriptions-item>
-                    <el-descriptions-item v-if='detail.steps["json"]' label="JSON">{{ detail.steps["json"]
-                    }}</el-descriptions-item>
-                    <el-descriptions-item v-if='detail.steps["cookies"]' label="Cookies">{{ detail.steps['cookies']
-                    }}</el-descriptions-item>
-                    <el-descriptions-item v-if='detail.steps["headers"]' label="Headers">{{ detail.steps["headers"]
-                    }}</el-descriptions-item>
+                <el-descriptions title="接口请求细节" :column="1" label-width="100" border>
+                    <el-descriptions-item v-if='detail.steps["path"]' label="接口路径"><div class="response-content">{{ detail.steps["path"]
+                    }}</div></el-descriptions-item>
+                    <el-descriptions-item v-if='detail.steps["method"]' label="请求方式"><div class="response-content">{{ detail.steps["method"]
+                    }}</div></el-descriptions-item>
+                    <el-descriptions-item v-if='detail.steps["params"]' label="URL参数"><div class="response-content">{{ detail.steps["params"]
+                    }}</div></el-descriptions-item>
+                    <el-descriptions-item v-if='detail.steps["data"]' label="FORM"><div class="response-content">{{ detail.steps['data']
+                    }}</div></el-descriptions-item>
+                    <el-descriptions-item v-if='detail.steps["json"]' label="JSON"><div class="response-content">{{ detail.steps["json"]
+                    }}</div></el-descriptions-item>
+                    <el-descriptions-item v-if='detail.steps["cookies"]' label="Cookies"><div class="response-content">{{ detail.steps['cookies']
+                    }}</div></el-descriptions-item>
+                    <el-descriptions-item v-if='detail.steps["headers"]' label="Headers"><div class="response-content">{{ detail.steps["headers"]
+                    }}</div></el-descriptions-item>
                 </el-descriptions>
 
             </el-collapse-item>
@@ -440,4 +438,30 @@ onMounted(() => {
     display: flex;
     justify-content: flex-end;
 }
+
+/* 修复长文本宽度显示异常 */
+.content-text {
+    max-width: 100%;
+    word-break: break-all;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+/* 响应内容样式：带滚动和自动换行 */
+.response-content {
+    max-width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    word-break: break-all;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    padding: 1px;
+    /* background-color: #f5f7fa; */
+    border-radius: 4px;
+    /* font-family: 'Consolas', 'Monaco', monospace; */
+    font-size: 12px;
+}
+
 </style>

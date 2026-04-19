@@ -240,7 +240,7 @@ def process_with_ai_stream():
         # 获取请求参数
         primary_content = request.json.get("primary_content")  # 主需求内容
         second_content = request.json.get("second_content")  # 补充说明
-        hint = request.json.get("hint")
+        hint = request.json.get("hint")  # 提示
         project_id = request.json.get("project_id")
         # 打印接收的参数
         print(f"接收到的参数: primary_content={primary_content}, second_content={second_content}, hint={hint}, project_id={project_id}")
@@ -265,7 +265,7 @@ def process_with_ai_stream():
             primary_doc = Document.query.filter_by(id=int(primary_content)).first()
             if not primary_doc:
                 return respModel.error_resp(msg=f"需求内容不存在: {primary_content}")
-            secondary_docs = []
+            secondary_docs = []  # 补充需求内容
             if second_content is not None and len(second_content) > 0:
                 for id in second_content.split(','):
                     secondary_doc = Document.query.filter_by(id=int(id)).first()
@@ -293,7 +293,7 @@ def process_with_ai_stream():
             "second_content": "\n".join(secondary_contents),
             "hint": hint,
         })
-        # print(f"生成的提示词: {ai_prompt}")
+        print(f"生成的最终提示词: {ai_prompt}")
 
         # 设置流式响应
         def generate():

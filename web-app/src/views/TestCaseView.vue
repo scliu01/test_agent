@@ -123,10 +123,10 @@
                 <el-input v-model="addOrEditForm.precondition" type="textarea" :rows="2" placeholder="请输入前置条件" />
             </el-form-item>
             <el-form-item label="测试步骤" prop="steps" required>
-                <el-input v-model="addOrEditForm.steps" type="textarea" :rows="2" placeholder="请输入测试步骤" />
+                <el-input v-model="addOrEditForm.steps" type="textarea" :rows="6" placeholder="请输入测试步骤" />
             </el-form-item>
             <el-form-item label="预期结果" prop="expected" required>
-                <el-input v-model="addOrEditForm.expected" type="textarea" :rows="2" placeholder="请输入预期结果" />
+                <el-input v-model="addOrEditForm.expected" type="textarea" :rows="4" placeholder="请输入预期结果" />
             </el-form-item>
         </el-form>
         <template #footer>
@@ -161,10 +161,10 @@
                             @selection-change="handleAISelectionChange">
                             <el-table-column type="selection" width="55" />
                             <el-table-column prop="id" label="编号" width="55" />
-                            <el-table-column prop="name" label="测试用例名称" width="250" />
-                            <el-table-column prop="precondition" label="前置条件" width="200" />
-                            <el-table-column prop="steps" label="测试步骤" />
-                            <el-table-column prop="expected" label="预期结果" width="300" />
+                            <el-table-column prop="name" label="测试用例名称" width="150" />
+                            <el-table-column prop="precondition" label="前置条件" width="150" />
+                            <el-table-column prop="steps" label="测试步骤" width="300" />
+                            <el-table-column prop="expected" label="预期结果" width="250" />
                             <el-table-column prop="priority" label="优先级" width="80" />
                         </el-table>
                     </div>

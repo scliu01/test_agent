@@ -3,6 +3,7 @@ import io
 import json
 import re
 import traceback
+from idlelib.iomenu import encoding
 
 import pandas as pd
 from flask import Blueprint, request, Response, send_file
@@ -12,6 +13,7 @@ from HDT.models.projects import Project
 from HDT.utils import VarRender, json_utils
 from HDT.utils.VarRender import refresh
 from HDT.utils.ai_utils import parse_markdown, load_prompt
+from HDT.utils.json_utils import convert_numeric_strings
 from HDT.utils.resp_model import respModel
 from app import app_server, database
 from HDT.models.api_test_case_exec import ApiTestCaseExec
@@ -256,34 +258,72 @@ async def execute(data_id):
             for case_id in case_ids:
                 try:
                     print("执行用例ID:", case_id)
-                    # 查询出需要执行的测试用例数据
-                    test_case = ApiTestCase.query.filter_by(id=case_id).first()
+                    test_case = ApiTestCase.query.filter_by(id=case_id).first()  # 查询出需要执行的测试用例数据
                     # 如果不存在，直接返回错误
                     if not test_case:
                         return respModel.error_resp(msg=f"用例ID {case_id} 不存在")
-                    # 获取当前用例的参数
-                    case_param = case_params.get(case_id, {})
+                    print("test_case:", test_case)
+                    # 请求信息处理
+                    case_param = case_params.get(case_id, {})  # 获取当前用例的参数
                     case_param.update(case_params.get('0', {}))  # 合并AI自动化系统配置参数
                     print("case_param", case_param)
-                    # 渲染参数
-                    steps = refresh(test_case.steps, case_param)
-                    print("steps", steps)
-                    expected = refresh(test_case.expected, case_param)
-                    print("expected", expected)
-                    request_info = json_utils.parse_json(steps)
-                    print("request_info", request_info)
-                    # 拼接URL
-                    request_info['url'] = case_param.get("服务器地址", "") + request_info.get("path", "")
+                    steps = refresh(test_case.steps, case_param)  # 步骤渲染
+                    request_info = json_utils.parse_json(steps)  # 解析JSON字符串
+                    request_info['url'] = case_param.get("服务器地址", "") + request_info.get("path", "")  # 拼接URL
+
+                    # 请求头信息处理
+                    print("登录凭据", case_param.get("登录凭据"))
+                    # 从 case_param 中提取登录凭据并添加到请求头
+                    headers = json_utils.parse_json(request_info.get("headers", {}))
+                    print("headers", headers)
+                    if not isinstance(headers, dict):
+                        headers = {}
+                    headers["Content-Type"] = "application/json; charset=utf-8"
+                    headers["user-agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+                    login_token = case_param.get("登录凭据")
+                    # login_token = json_utils.parse_json(login_token)
+                    if login_token:
+                        # JWT token 本身就是字符串，不需要解析
+                        # 根据令牌格式判断使用哪种认证方式
+                        is_jwt = isinstance(login_token, str) and login_token.startswith("eyJ")
+                        if is_jwt:
+                            # JWT Token 使用 Authorization 头
+                            if "authorization" not in headers and "Authorization" not in headers:
+                                headers["Authorization"] = login_token
+                        else:
+                            # 其他类型的 Token 使用 token 字段
+                            if "token" not in headers and "Token" not in headers:
+                                headers["token"] = login_token
+                    request_info['headers'] = headers
+
+                    expected = refresh(test_case.expected, case_param)  # 预期结果渲染
+
+                    request_info = convert_numeric_strings(request_info)  # 转换字符串形式的数值为整数或浮点数
                     print(f'开始请求: {request_info}')
-                    response_info = requests.request(
-                        url=request_info['url'],
-                        method=request_info.get("method", "GET"),
-                        params=json_utils.parse_json(request_info.get("params")),
-                        data=json_utils.parse_json(request_info.get("data", {})),
-                        json={"password": "123456", "username": "18511114444"},
-                        headers=json_utils.parse_json(request_info.get("headers", {})),
-                        cookies=json_utils.parse_json(request_info.get("cookies", {}))
-                    )
+                    try:
+                        response_info = requests.request(
+                            url=request_info['url'],
+                            # method=request_info.get("method", "GET"),
+                            method=request_info['method'],
+                            # params=json_utils.parse_json(request_info.get("params")),
+                            params=request_info.get("params"),
+                            data=json_utils.parse_json(request_info.get("data", {})),
+                            # json={"password": "123456", "username": "18511114444"},
+                            json=json_utils.parse_json(request_info.get("json", {})),
+                            headers=json_utils.parse_json(request_info.get("headers", {})),
+                            cookies=json_utils.parse_json(request_info.get("cookies", {})),
+                        )
+                    except requests.exceptions.SSLError as ssl_error:
+                        print(f"SSL证书验证失败，尝试跳过SSL验证: {ssl_error}")
+                        response_info = requests.request(
+                            verify=False,
+                            url=request_info['url'],
+                            method=request_info['method'],
+                            params=request_info.get("params"),
+                            data=json_utils.parse_json(request_info.get("data", {})),
+                            json=json_utils.parse_json(request_info.get("json", {})),
+                            headers=json_utils.parse_json(request_info.get("headers", {})),
+                        )
                     # 打印响应信息
                     print(f'请求结束: {response_info.status_code} {response_info.text}')
                     # 渲染提示词
@@ -310,6 +350,9 @@ async def execute(data_id):
                     print("content", content)
                     # 提取生成的结果
                     generated_data = response.choices[0].message.content
+                    if not generated_data.startswith("```json"):  # AI脑残返回处理
+                        # 重新赋值：开头加 ```json，结尾加 ```
+                        generated_data = f"```json{generated_data}```"
                     # 提取```json 中的数据
                     str_result = re.search(r"```json(.*?)```", generated_data, re.DOTALL).group(1)
                     result = json.loads(str_result)
