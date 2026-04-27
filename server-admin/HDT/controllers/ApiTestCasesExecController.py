@@ -7,6 +7,7 @@ from idlelib.iomenu import encoding
 
 import pandas as pd
 from flask import Blueprint, request, Response, send_file
+from flask_jwt_extended import jwt_required
 from openai import OpenAI
 
 from HDT.models.projects import Project
@@ -31,6 +32,7 @@ module_model = ApiTestCaseExec
 
 # 查询所有数据
 @module_route.route(f"/{module_name}/queryAll", methods=["GET"])
+@jwt_required()
 def queryAll():
     project_id = request.args.get("project_id")
     print(f"查询项目下的数据模板:{request.args}")
@@ -51,6 +53,7 @@ def queryAll():
 
 
 @module_route.route(f"/{module_name}/queryByPage", methods=["POST"])
+@jwt_required()
 def queryByPage():
     """ 查询数据(支持模糊搜索) """
     try:
@@ -90,6 +93,7 @@ def queryByPage():
 
 
 @module_route.route(f"/{module_name}/queryById", methods=["GET"])
+@jwt_required()
 def queryById():
     """ 查询数据(单条记录) """
     try:
@@ -108,6 +112,7 @@ def queryById():
 
 
 @module_route.route(f"/{module_name}/delete", methods=["DELETE"])
+@jwt_required()
 def delete():
     """ 删除数据 """
     try:
@@ -128,6 +133,7 @@ def delete():
 
 # 批量删除
 @module_route.route(f"/{module_name}/deleteBatch", methods=["POST", "DELETE"])
+@jwt_required()
 def deleteBatch():
     """ 批量删除数据 """
     try:
@@ -149,6 +155,7 @@ def deleteBatch():
 
 
 @module_route.route(f"/{module_name}/prepared_task", methods=["POST"])
+@jwt_required()
 def prepared_task():
     """ 创建测试执行任务 """
     print(f"接收到的参数：{request.json}")
@@ -186,6 +193,7 @@ def prepared_task():
 
 
 @module_route.route(f"/{module_name}/insert", methods=["POST"])
+@jwt_required()
 def insert():
     """ 新增数据 """
     try:

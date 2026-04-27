@@ -29,7 +29,7 @@ class Project(database.Model):
             'id': self.id,
             'name': self.name,
             'description': self.description,
-            'password': self.password,
+            # 'password': self.password,
             'llm_url': self.llm_url,
             'llm_key': self.llm_key,
             'llm_model': self.llm_model,

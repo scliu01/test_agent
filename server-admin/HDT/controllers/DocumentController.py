@@ -6,6 +6,7 @@ import traceback
 import uuid
 
 from flask import Blueprint, request, Response
+from flask_jwt_extended import jwt_required
 from openai import OpenAI
 
 from HDT.models.projects import Project
@@ -26,6 +27,7 @@ module_model = Document
 
 # 查询所有数据
 @module_route.route(f"/{module_name}/queryAll", methods=["GET"])
+@jwt_required()
 def queryAll():
     project_id = request.args.get("project_id")
     print(f"查询项目下的数据模板:{project_id}")
@@ -37,6 +39,7 @@ def queryAll():
 
 
 @module_route.route(f"/{module_name}/insert", methods=["POST"])
+@jwt_required()
 def insert():
     """ 新增数据 """
     try:
@@ -59,6 +62,7 @@ def insert():
 
 
 @module_route.route(f"/{module_name}/queryById", methods=["GET"])
+@jwt_required()
 def queryById():
     """ 查询数据(单条记录) """
     try:
@@ -76,6 +80,7 @@ def queryById():
 
 
 @module_route.route(f"/{module_name}/update", methods=["PUT"])
+@jwt_required()
 def update():
     """ 修改数据 """
     try:
@@ -90,6 +95,7 @@ def update():
 
 
 @module_route.route(f"/{module_name}/delete", methods=["DELETE"])
+@jwt_required()
 def delete():
     """ 删除数据 """
     try:
@@ -109,6 +115,7 @@ def delete():
 
 
 @module_route.route(f"/{module_name}/importDocument", methods=["POST"])
+@jwt_required()
 def import_document():
     # 文件验证部分保持不变
     if 'file' not in request.files:
@@ -239,6 +246,7 @@ def import_document():
 
 
 @module_route.route(f"/{module_name}/process_with_ai_stream", methods=["POST"])
+@jwt_required()
 def process_with_ai_stream():
     """ 使用AI处理生成测试数据 """
     try:

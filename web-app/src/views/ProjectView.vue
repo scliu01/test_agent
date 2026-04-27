@@ -77,15 +77,15 @@
         </el-container>
     </div>
     <el-dialog v-model="addDialogVisible" :title="addBean.id ? '编辑项目' : '添加项目'" width="600">
-        <el-form :model="addBean" label-width="auto">
+        <el-form :model="addBean" :rules="rules" ref="formRef" label-width="auto">
             <el-form-item label="项目名称" prop="name" required>
                 <el-input v-model="addBean.name" placeholder="请输入项目名称" />
             </el-form-item>
             <el-form-item label="项目描述" prop="description">
                 <el-input v-model="addBean.description" type="textarea" :rows="3" placeholder="请输入项目描述（可选）" />
             </el-form-item>
-            <el-form-item label="密码" prop="password" required>
-                <el-input v-model="addBean.password" type="password" placeholder="请输入密码" />
+            <el-form-item label="密码" prop="password" :required="!addBean.id">
+                <el-input v-model="addBean.password" type="password" :placeholder="addBean.id ? '请输入密码(不修改则留空)' : '请输入密码'" />
             </el-form-item>
             <el-form-item label="大语言模型URL" prop="llm_url" required>
                 <el-input v-model="addBean.llm_url" placeholder="请输入大模型API URL" />
@@ -203,7 +203,8 @@ const handleSave = async () => {
  * 编辑项目
  */
 async function handleEdit(id, password) {
-    if (!await checkPass(password)) {
+    // if (!await checkPass(password)) {
+    if (!await checkPass(id, password)) {
         ElMessage.error('密码错误');
         return;
     }
@@ -239,7 +240,8 @@ function handleAdd() {
  * 删除项目
  */
 async function handleDelete(id, password) {
-    if (!await checkPass(password)) {
+    // if (!await checkPass(password)) {
+    if (!await checkPass(id, password)) {
         ElMessage.error('密码错误');
         return;
     }
@@ -264,7 +266,8 @@ const router = useRouter()
  * 进入项目
  */
 async function handleEnter(id, password) {
-    if (!await checkPass(password)) {
+    // if (!await checkPass(password)) {
+    if (!await checkPass(id, password)) {
         ElMessage.error('密码错误');
         return;
     }
@@ -275,9 +278,10 @@ async function handleEnter(id, password) {
 
 /**
  * 检查密码
+ * @param id 项目的id
  * @param password 项目的密码
  */
-async function checkPass(password) {
+async function checkPass(id, password) {
     try {
         // 输入密码的提示框
         const { value } = await ElMessageBox.prompt('请输入项目密码', '验证', {
@@ -287,7 +291,18 @@ async function checkPass(password) {
             inputPlaceholder: '请输入密码'
         })
 
-        return password === value
+        // return password === value
+        // 调用后端接口验证密码
+        const res = await api.openProject({ id, password: value })
+        const res_data = res.data
+        // return res_data.code == 200
+        if (res_data.code == 200) {
+            // 保存 token
+            const token = res_data.data.access_token;
+            localStorage.setItem('access_token', token);
+            return true;
+        }
+        return false
     } catch (error) {
         return false
     }

@@ -38,7 +38,7 @@ def queryAll():
         return respModel.error_resp(f"服务器错误,请联系管理员:{e}")
 
 
-@module_route.route(f"/{module_name}/open", methods=["POST"])
+@module_route.route(f"/{module_name}/openProject", methods=["POST"])
 def open_project():
     """ 打开项目 - 验证密码并返回访问令牌 """
     try:
@@ -46,7 +46,7 @@ def open_project():
         if not data:
             return respModel.error_resp(msg="请提供JSON数据")
 
-        project_id = data.get("project_id")
+        project_id = data.get("id")
         password = data.get("password")
 
         if not project_id or not password:
@@ -128,6 +128,7 @@ def insert():
 
 
 @module_route.route(f"/{module_name}/queryById", methods=["GET"])
+@jwt_required()
 def queryById():
     """ 查询数据(单条记录) """
     try:
@@ -146,6 +147,7 @@ def queryById():
 
 
 @module_route.route(f"/{module_name}/update", methods=["PUT"])
+@jwt_required()
 def update():
     """ 修改数据 """
     try:
@@ -160,6 +162,7 @@ def update():
 
 
 @module_route.route(f"/{module_name}/delete", methods=["DELETE"])
+@jwt_required()
 def delete():
     """ 删除数据 """
     try:

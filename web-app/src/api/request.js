@@ -35,12 +35,24 @@ const service = axios.create({
 // 		loading.value.close();
 // 	}
 // }
-
+// 不需要token校验的接口白名单
+const whiteList = [
+	'/project/queryAll',
+	'/project/openProject',
+	'/project/insert',
+];
 
 // 添加请求拦截器
 service.interceptors.request.use(
 	(config) => {
 		// open();//开启拦截
+		// 不在白名单中的接口，自动添加Authorization token
+		if (!whiteList.some(url => config.url.includes(url))) {
+			const token = localStorage.getItem('access_token');
+			if (token) {
+				config.headers.Authorization = `Bearer ${token}`;
+			}
+		}
 		return config;
 	},
 	(error) => {

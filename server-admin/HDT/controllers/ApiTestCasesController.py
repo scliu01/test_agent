@@ -5,6 +5,7 @@ import traceback
 
 import pandas as pd
 from flask import Blueprint, request, Response, send_file
+from flask_jwt_extended import jwt_required
 from openai import OpenAI
 
 from HDT.models.projects import Project
@@ -47,6 +48,7 @@ def queryAll():
 
 
 @module_route.route(f"/{module_name}/queryByPage", methods=["POST"])
+@jwt_required()
 def queryByPage():
     """ 查询数据(支持模糊搜索) """
     try:
@@ -97,6 +99,7 @@ def queryByPage():
 
 
 @module_route.route(f"/{module_name}/insert", methods=["POST"])
+@jwt_required()
 def insert():
     """ 新增数据 """
     try:
@@ -124,6 +127,7 @@ def insert():
 
 
 @module_route.route(f"/{module_name}/queryById", methods=["GET"])
+@jwt_required()
 def queryById():
     """ 查询数据(单条记录) """
     try:
@@ -142,6 +146,7 @@ def queryById():
 
 
 @module_route.route(f"/{module_name}/update", methods=["PUT"])
+@jwt_required()
 def update():
     """ 修改数据 """
     try:
@@ -159,6 +164,7 @@ def update():
 
 
 @module_route.route(f"/{module_name}/delete", methods=["DELETE"])
+@jwt_required()
 def delete():
     """ 删除数据 """
     try:
@@ -179,6 +185,7 @@ def delete():
 
 # 批量删除
 @module_route.route(f"/{module_name}/deleteBatch", methods=["POST", "DELETE"])
+@jwt_required()
 def deleteBatch():
     """ 批量删除数据 """
     try:
@@ -200,6 +207,7 @@ def deleteBatch():
 
 
 @module_route.route(f"/{module_name}/insertBatch", methods=["POST"])
+@jwt_required()
 def insertBatch():
     """ 批量新增数据 """
     try:
@@ -248,6 +256,7 @@ def insertBatch():
 
 
 @module_route.route(f"/{module_name}/process_with_ai_stream", methods=["POST"])
+@jwt_required()
 def process_with_ai_stream():
     """ 使用AI处理生成测试数据 """
     try:
@@ -382,6 +391,7 @@ def process_with_ai_stream():
 
 
 @module_route.route(f"/{module_name}/export_excel", methods=["POST"])
+@jwt_required()
 def export_excel():
     """ 导出数据到Excel """
     try:
