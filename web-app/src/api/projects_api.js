@@ -17,6 +17,15 @@ class ProjectApi {
 	}
 
 	/**
+	 * 密码校验
+	 * @param {Object} form 校验的数据
+	 * @returns 校验结果
+	 */
+	openProject(form) {
+		return request.post(`/${module_name}/openProject`, form);
+	}
+
+	/**
 	 * 插入数据
 	 * @param {Object} form 插入的数据
 	 * @returns 插入结果

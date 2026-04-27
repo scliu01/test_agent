@@ -76,10 +76,10 @@ def fix_json_str(json_str: str):
     json_str = json_str.replace(']"', ']\'')
     json_str = json_str.replace('\'{{', '"{{')
     json_str = json_str.replace('}}\'', '}}"')
-    # 去掉换行符
-    json_str = json_str.replace('\n', '')
-    # 去掉空格
-    json_str = json_str.replace(' ', '')
+    # # 去掉换行符
+    # json_str = json_str.replace('\n', '')
+    # # 去掉空格
+    # json_str = json_str.replace(' ', '')
 
     return json_str
 
@@ -87,10 +87,10 @@ def fix_json_str(json_str: str):
 
 
 
-if __name__ == '__main__':
-    dic = """"{"path":"/api/dictionaries/{{ dictionary_id }}/data","method":"POST","json":{"dictionary_id":"{{ dictionary_id }}","data_name":"A","data_key":-1,"sort_value":0,"is_enable":2,"remark":"非常长的备注信息非常长的备注信息非常长的备注信息非常长的备注信息非常长的备注信息非常长的备注信息"}}
-    """
-    target = "hello {{name}}, {{niasd}}"
-    context = {'dictionary_id': 1, '服务器地址': 'https://maint_dev.jlksaas.net', '登录凭据': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxODA2MjQ2Mzk5NjcxNjY4NzM2IiwiZXhwIjoxNzc2NDI4NDY0fQ.QGZbSGaVSfhT2WoRYewI1SolrfMSs1ioKKIjlGUJVAw'}
-    result = refresh(dic, context)
-    print(result, type(result))
+# if __name__ == '__main__':
+    # dic = """"{"path":"/api/dictionaries/{{ dictionary_id }}/data","method":"POST","json":{"dictionary_id":"{{ dictionary_id }}","data_name":"A","data_key":-1,"sort_value":0,"is_enable":2,"remark":"非常长的备注信息非常长的备注信息非常长的备注信息非常长的备注信息非常长的备注信息非常长的备注信息"}}
+    # """
+    # target = "hello {{name}}, {{niasd}}"
+    # context = {'dictionary_id': 1, '服务器地址': 'https://maint_dev.jlksaas.net', '登录凭据': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxODA2MjQ2Mzk5NjcxNjY4NzM2IiwiZXhwIjoxNzc2NDI4NDY0fQ.QGZbSGaVSfhT2WoRYewI1SolrfMSs1ioKKIjlGUJVAw'}
+    # result = refresh(dic, context)
+    # print(result, type(result))

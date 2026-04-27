@@ -4,6 +4,7 @@ import urllib
 from flask import Flask, abort, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from starlette.staticfiles import StaticFiles
 from werkzeug.utils import secure_filename
 
@@ -20,6 +21,10 @@ CORS(app_server, resources=r'/*', max_age=86400)  # 缓存预检结果24小时
 # 数据库连接
 database = SQLAlchemy()
 database.init_app(app_server)
+
+# 初始化JWT
+jwt = JWTManager()
+jwt.init_app(app_server)
 
 # ========== 核心配置（根据你的实际路径修改） ==========
 # ================= 静态文件映射（G 盘）=================

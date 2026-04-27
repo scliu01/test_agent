@@ -85,15 +85,15 @@
     <!-- 查看测试用例对话框 -->
     <el-dialog v-model="viewDialogVisible" title="用例详情" width="800px">
         <el-descriptions :column="1" label-width="80" border>
-            <el-descriptions-item label="用例名称">{{ addOrEditForm.name }}</el-descriptions-item>
+            <el-descriptions-item label="用例名称"><span style="white-space: pre-wrap;">{{ addOrEditForm.name }}</span></el-descriptions-item>
             <el-descriptions-item label="优先级">
                 <el-tag :type="handlePriorityType(addOrEditForm.priority)">
                     {{ addOrEditForm.priority }}
                 </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="前置条件">{{ addOrEditForm.precondition }}</el-descriptions-item>
-            <el-descriptions-item label="测试步骤">{{ addOrEditForm.steps }}</el-descriptions-item>
-            <el-descriptions-item label="预期结果">{{ addOrEditForm.expected }}</el-descriptions-item>
+            <el-descriptions-item label="前置条件"><span style="white-space: pre-wrap;">{{ addOrEditForm.precondition }}</span></el-descriptions-item>
+            <el-descriptions-item label="测试步骤"><span style="white-space: pre-wrap;">{{ addOrEditForm.steps }}</span></el-descriptions-item>
+            <el-descriptions-item label="预期结果"><span style="white-space: pre-wrap;">{{ addOrEditForm.expected }}</span></el-descriptions-item>
         </el-descriptions>
     </el-dialog>
 
@@ -116,7 +116,7 @@
         <el-collapse>
             <el-collapse-item v-for="(item, index) in execForm.exec_param" :title="item.case_id + '.' + item.case_name"
                 :key="index">
-                <el-form-item v-for="(value, key) in item.case_param" :label="key" :label-width="160">
+                <el-form-item v-for="(value, key) in item.case_param" :label="key" :label-width="80">
                     <el-input v-model="item.case_param[key]" placeholder="请输入参数值" :value="value" />
                 </el-form-item>
             </el-collapse-item>

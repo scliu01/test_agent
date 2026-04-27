@@ -234,16 +234,16 @@ async def execute(data_id):
                     # 获取当前用例的参数
                     case_param = case_params.get(case_id, {})
                     case_param.update(case_params.get('0', {}))  # 合并AI自动化系统配置参数
-                    print("case_param", case_param)
                     # 渲染参数
                     steps = refresh(test_case.steps, case_param)
-                    print("steps", steps)
+                    print("steps:", steps)
                     expected = refresh(test_case.expected, case_param)
-                    print("expected", expected)
+                    print("expected:", expected)
                     context = {
                         "steps": steps,
                         "expected": expected,
                     }
+                    print("context:", context)
                     mcp_server = ""
                     # 渲染提示词
                     if exec_task.exec_type == "web":

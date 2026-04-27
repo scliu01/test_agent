@@ -1,7 +1,8 @@
 import traceback
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import Blueprint, request
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
 from HDT.utils.resp_model import respModel
 from app import app_server, database
 from HDT.models.projects import Project
@@ -21,10 +22,84 @@ def queryAll():
         with app_server.app_context():
             # 获取查询所有数据的结果
             lst = module_model.query.all()
-            return respModel.ok_resp_list(lst=lst, msg="查询成功")
+            # 对敏感字段进行脱敏处理
+            masked_lst = []
+            for item in lst:
+                item_dict = item.to_dict()
+                # 将敏感字段替换为 "******"
+                if 'llm_key' in item_dict:
+                    item_dict['llm_key'] = '******'
+                if 'lvm_key' in item_dict:
+                    item_dict['lvm_key'] = '******'
+                masked_lst.append(item_dict)
+            return respModel.ok_resp_list(lst=masked_lst, msg="查询成功")
     except Exception as e:
         traceback.print_exc()
         return respModel.error_resp(f"服务器错误,请联系管理员:{e}")
+
+
+@module_route.route(f"/{module_name}/open", methods=["POST"])
+def open_project():
+    """ 打开项目 - 验证密码并返回访问令牌 """
+    try:
+        data = request.json
+        if not data:
+            return respModel.error_resp(msg="请提供JSON数据")
+
+        project_id = data.get("project_id")
+        password = data.get("password")
+
+        if not project_id or not password:
+            return respModel.error_resp(msg="项目ID或密码不能为空")
+
+        with app_server.app_context():
+            # 查询项目
+            project = Project.query.filter_by(id=project_id).first()
+
+            if not project:
+                return respModel.error_resp(msg="项目不存在")
+
+            # 验证密码
+            if project.password != password:
+                return respModel.error_resp(msg="密码错误")
+
+            # 创建访问令牌，将项目ID放入token中
+            additional_claims = {
+                "project_id": project.id,
+                "project_name": project.name
+            }
+
+            # 设置token过期时间（从配置中读取）
+            expires_delta = timedelta(seconds=app_server.config.get("JWT_ACCESS_TOKEN_EXPIRES", 3600))
+
+            access_token = create_access_token(
+                identity=str(project.id),
+                additional_claims=additional_claims,
+                expires_delta=expires_delta
+            )
+
+            # 返回token和项目信息（脱敏）
+            project_info = project.to_dict()
+            # 脱敏处理
+            if 'llm_key' in project_info:
+                project_info['llm_key'] = '******'
+            if 'lvm_key' in project_info:
+                project_info['lvm_key'] = '******'
+            if 'password' in project_info:
+                del project_info['password']  # 不返回密码
+
+            return respModel.ok_resp(
+                msg="密码正确",
+                dic_t={
+                    "access_token": access_token,
+                    "token_type": "Bearer",
+                    "expires_in": app_server.config.get("JWT_ACCESS_TOKEN_EXPIRES", 3600),
+                    "project": project_info
+                }
+            )
+    except Exception as e:
+        traceback.print_exc()
+        return respModel.error_resp(f"服务器错误，请联系管理员:{e}")
 
 
 @module_route.route(f"/{module_name}/insert", methods=["POST"])

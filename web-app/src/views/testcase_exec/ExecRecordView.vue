@@ -62,7 +62,7 @@
         <el-divider content-position="center">用例参数配置</el-divider>
         <el-collapse>
             <el-collapse-item v-for="(item, index) in execForm.exec_param" :title="item.case_id + '.' + item.case_name" :key="index">
-                <el-form-item v-for="(value, key) in item.case_param" :label="key" :label-width="160">
+                <el-form-item v-for="(value, key) in item.case_param" :label="key" :label-width="80">
                     <el-input v-model="item.case_param[key]" placeholder="请输入参数值" :value="value" />
                 </el-form-item>
             </el-collapse-item>
@@ -88,8 +88,8 @@
                     </div>
                 </template>
                 <el-descriptions :column="1" label-width="100" border>
-                    <el-descriptions-item label="测试步骤">{{ detail.steps }}</el-descriptions-item>
-                    <el-descriptions-item label="预期结果">{{ detail.expected }}</el-descriptions-item>
+                    <el-descriptions-item label="测试步骤"><span style="white-space: pre-wrap;">{{ detail.steps }}</span></el-descriptions-item>
+                    <el-descriptions-item label="预期结果"><span style="white-space: pre-wrap;">{{ detail.expected }}</span></el-descriptions-item>
                     <el-descriptions-item label="AI执行记录">{{ detail.ai_result }}</el-descriptions-item>
                     <el-descriptions-item label="可视化记录" v-if="detail.attachments && detail.attachments.length > 0">
                         <el-image style="width: 100px; height: 100px" :src="detail.attachments[0]" :zoom-rate="1.2"

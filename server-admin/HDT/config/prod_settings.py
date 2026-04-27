@@ -6,6 +6,11 @@ SQLALCHEMY_ECHO = True
 # 密钥，不要让别人知道
 SECRET_KEY = "1234567812345678"
 
+# JWT_SECRET_KEY鉴权
+JWT_SECRET_KEY = "jwt-secret-key-change-in-production-12345678" # 秘钥
+JWT_ACCESS_TOKEN_EXPIRES = 3600
+JWT_REFRESH_TOKEN_EXPIRES = 86400 * 30
+
 # mcp服务器地址
 PLAYWRIGHT_MCP_SERVER = "http://localhost:8931/sse"
 MOBILE_MCP_SERVER = "http://127.0.0.1:8932/mcp"

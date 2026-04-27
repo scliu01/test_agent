@@ -21,6 +21,7 @@ et_xmlfile==2.0.0
 Flask==3.1.1
 flask-cors==6.0.1
 Flask-SQLAlchemy==3.1.1
+Flask-JWT-Extended==4.7.1
 flatbuffers==25.2.10
 greenlet==3.2.4
 h11==0.16.0

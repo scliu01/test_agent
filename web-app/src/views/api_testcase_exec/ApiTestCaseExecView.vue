@@ -84,13 +84,13 @@
     <!-- 查看测试用例对话框 -->
     <el-dialog v-model="viewDialogVisible" title="用例详情" width="800px">
         <el-descriptions :column="1" label-width="80" border>
-            <el-descriptions-item label="用例名称">{{ addOrEditForm.name }}</el-descriptions-item>
+            <el-descriptions-item label="用例名称"><span style="white-space: pre-wrap;">{{ addOrEditForm.name }}</span></el-descriptions-item>
             <el-descriptions-item label="优先级">
                 <el-tag :type="handlePriorityType(addOrEditForm.priority)">
                     {{ addOrEditForm.priority }}
                 </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="前置条件">{{ addOrEditForm.precondition }}</el-descriptions-item>
+            <el-descriptions-item label="前置条件"><span style="white-space: pre-wrap;">{{ addOrEditForm.precondition }}</span></el-descriptions-item>
         </el-descriptions>
         <el-divider></el-divider>
         <el-descriptions title="接口请求参数" :column="1" label-width="80" border>

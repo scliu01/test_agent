@@ -175,10 +175,10 @@ async def mcp(ai_prompt: str, mcp_server: str, api_key, base_url, model, timeout
         api_key=api_key,
         # top_p=0.8,  # 随机性
         temperature=0.8,  # 多样性
-        extra_body={
-            "thinking_budget": 3276800,
-            "max_completion_tokens": 1228800,
-        }
+        # extra_body={
+        #     # "thinking_budget": 393216,
+        #     # "max_completion_tokens": 393216,
+        # }
     )
 
     agent_response = None
