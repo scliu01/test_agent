@@ -7,13 +7,21 @@
  * @returns {Array} 树形结构数据
  */
 export function flatToTree(data, idKey = 'id', parentKey = 'parent_id', labelKey = 'name') {
+	// 0. 先按 sort_order 升序排列（数值越小越靠前）
+	const sortedData = [...data].sort((a, b) => {
+		const sortA = a.sort_order || 0;
+		const sortB = b.sort_order || 0;
+		return sortA - sortB;
+	});
+
 	// 1. 构建节点映射表（快速查找节点）
 	const nodeMap = new Map();
 	// 2. 存储最终根节点
 	const tree = [];
 
 	// 初始化映射表，同时格式化节点（只保留id/label，初始化children）
-	data.forEach((item) => {
+	// data.forEach((item) => {
+	sortedData.forEach((item) => {
 		nodeMap.set(item[idKey], {
 			id: item[idKey],
 			label: item[labelKey],
@@ -24,7 +32,8 @@ export function flatToTree(data, idKey = 'id', parentKey = 'parent_id', labelKey
 	console.log('nodeMap', nodeMap);
 
 	// 3. 构建父子关系
-	data.forEach((item) => {
+	// data.forEach((item) => {
+	sortedData.forEach((item) => {
 		const currentNode = nodeMap.get(item[idKey]);
 		const parentId = item[parentKey];
 

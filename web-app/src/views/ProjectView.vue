@@ -123,6 +123,22 @@ import api from '@/api/projects_api.js';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useRouter } from 'vue-router'
 
+const formRef = ref(null);
+
+const rules = reactive({
+    password: [
+        {
+            validator: (rule, value, callback) => {
+                if (!addBean.value.id && !value) {
+                    callback(new Error('请输入密码'));
+                } else {
+                    callback();
+                }
+            },
+            trigger: 'blur'
+        }
+    ]
+});
 // axios使用不同方法去做不同请求，不能弄错了
 // axios.get('http://localhost:5001/project/queryAll')
 //     // .then()就是处理请求成功的函数
@@ -171,10 +187,15 @@ const addBean = ref({
  * 添加项目
  */
 const handleSave = async () => {
-    if (!addBean.value.name) {
-        ElMessage.error('请输入项目名称');
+    // if (!addBean.value.name) {
+    try {
+        await formRef.value.validate();
+    } catch {
         return;
     }
+    //     ElMessage.error('请输入项目名称');
+    //     return;
+    // }
     // if (!addBean.value.password) {
     //     ElMessage.error('请输入密码');
     //     return;

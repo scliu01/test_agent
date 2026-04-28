@@ -9,6 +9,7 @@ class ApiDocument(database.Model):
     project_id = database.Column(database.Integer, nullable=False)
     name = database.Column(database.String(255))
     parent_id = database.Column(database.Integer)
+    sort_order = database.Column(database.Integer, default=0, comment='排序字段')
     is_directory = database.Column(database.Boolean, default=False, nullable=False)
     title = database.Column(database.String(255))
     content = database.Column(database.Text)
@@ -23,6 +24,7 @@ class ApiDocument(database.Model):
             'project_id': self.project_id,
             'name': self.name,
             'parent_id': self.parent_id,
+            'sort_order': self.sort_order,
             'is_directory': self.is_directory,
             'title': self.title,
             'content': self.content,

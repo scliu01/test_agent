@@ -13,23 +13,37 @@
                     </div>
                     <div class="tree-container">
                         <el-tree ref="menuTree" style="max-width: 600px" :data="menuData" show-checkbox node-key="id"
-                            :check-on-click-node="false" :check-on-click-leaf="false" default-expand-all
+                            :check-on-click-node="false" :check-on-click-leaf="false"
                             :expand-on-click-node="false" @node-click="handleNodeClick" @check="handleCheck">
                             <template #default="{ node, data }">
-                                <div class="custom-tree-node">
+                                <div class="custom-tree-node" :class="{ 'node-selected': data.source.id === currentNodeId }">
                                     <span class="single-line-overflow">{{ node.label }}</span>
-                                    <div>
-                                        <el-button type="primary" link @click.stop="addTree(data.source)">
-                                            添加
-                                        </el-button>
-                                        <el-button type="primary" link @click.stop="editTree(data.source)">
-                                            编辑
-                                        </el-button>
-                                        <el-button style="margin-left: 4px" type="danger" link
-                                            @click.stop="removeTree(node, data.source)">
-                                            删除
-                                        </el-button>
-                                    </div>
+                                    <el-dropdown trigger="click" @command="(command) => handleNodeCommand(command, node, data.source)" class="node-action-dropdown">
+                                        <span class="action-btn">
+                                            <svg width="1em" height="1em" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" class="more-icon" style="width: 16px; min-width: 16px; height: 16px;">
+                                                <path d="M128 227.008c11.046 0 20-8.954 20-20s-8.954-20-20-20-20 8.954-20 20 8.954 20 20 20ZM128 148c11.046 0 20-8.954 20-20s-8.954-20-20-20-20 8.954-20 20 8.954 20 20 20Zm0-78.992c11.046 0 20-8.954 20-20s-8.954-20-20-20-20 8.954-20 20 8.954 20 20 20Z" fill="currentColor" fill-rule="nonzero"></path>
+                                            </svg>
+                                        </span>
+                                        <template #dropdown>
+                                            <el-dropdown-menu>
+                                                <el-dropdown-item command="add">
+                                                    <i class="fas fa-plus me-1"></i>添加子目录
+                                                </el-dropdown-item>
+                                                <el-dropdown-item command="edit">
+                                                    <i class="fas fa-edit me-1"></i>重命名
+                                                </el-dropdown-item>
+                                                <el-dropdown-item command="move">
+                                                    <i class="fas fa-arrows-alt me-1"></i>移动
+                                                </el-dropdown-item>
+                                                <el-dropdown-item command="sort">
+                                                    <i class="fas fa-sort me-1"></i>排序
+                                                </el-dropdown-item>
+                                                <el-dropdown-item command="delete" divided>
+                                                    <i class="fas fa-trash-alt me-1"></i>删除
+                                                </el-dropdown-item>
+                                            </el-dropdown-menu>
+                                        </template>
+                                    </el-dropdown>
                                 </div>
                             </template>
                         </el-tree>
@@ -63,7 +77,7 @@
 
     <!-- 添加/编辑模态框 -->
     <el-dialog v-model="addOrEditModalVisible" :title="addOrEditModalTitle" width="500px" :destroy-on-close="true">
-        <el-form :model="addOrEditForm" label-width="80px">
+        <el-form :model="addOrEditForm" label-width="80px" @submit.prevent="saveTree">
             <el-form-item label="名称" prop="name" required>
                 <el-input v-model="addOrEditForm.name" placeholder="请输入名称" />
             </el-form-item>
@@ -72,6 +86,51 @@
         <template #footer>
             <el-button @click="addOrEditModalVisible = false">取消</el-button>
             <el-button type="primary" @click="saveTree()">确认</el-button>
+        </template>
+    </el-dialog>
+
+    <!-- 移动目录模态框 -->
+    <el-dialog v-model="moveModalVisible" title="移动目录" width="500px" :destroy-on-close="true">
+        <el-form label-width="80px" @submit.prevent="confirmMove">
+            <el-form-item label="当前目录">
+                <el-input :value="movingNode.name || movingNode.label || '未选择'" disabled />
+            </el-form-item>
+            <el-form-item label="目标父目录" required>
+                <el-tree-select
+                    v-model="targetParentId"
+                    :data="moveTreeData"
+                    :check-strictly="true"
+                    value-key="id"
+                    node-key="id"
+                    label="name"
+                    placeholder="选择目标父目录（不选为根目录）"
+                    :render-after-expand="false"
+                    style="width: 100%;"
+                />
+            </el-form-item>
+        </el-form>
+
+        <template #footer>
+            <el-button @click="moveModalVisible = false">取消</el-button>
+            <el-button type="primary" @click="confirmMove">确认移动</el-button>
+        </template>
+    </el-dialog>
+
+    <!-- 排序目录模态框 -->
+    <el-dialog v-model="sortModalVisible" title="设置排序" width="400px" :destroy-on-close="true">
+        <el-form label-width="80px" @submit.prevent="confirmSort">
+            <el-form-item label="目录名称">
+                <el-input :value="sortingNode.name || sortingNode.label || '未选择'" disabled />
+            </el-form-item>
+            <el-form-item label="排序值" required>
+                <el-input-number v-model="sortValue" :min="0" :max="9999" style="width: 100%;" />
+                <div class="el-form-item__tip">数值越小排序越靠前，默认为0</div>
+            </el-form-item>
+        </el-form>
+
+        <template #footer>
+            <el-button @click="sortModalVisible = false">取消</el-button>
+            <el-button type="primary" @click="confirmSort">确认</el-button>
         </template>
     </el-dialog>
 
@@ -210,6 +269,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import StreamingDialog from '@/components/StreamingDialog.vue'
 const menuTree = ref()
 const menuData = ref([])
+const currentNodeId = ref(null)
 
 // 获取当前项目ID
 const project_id = sessionStorage.getItem('project_id')
@@ -234,24 +294,119 @@ const addOrEditForm = ref({
     name: '',
 })
 
+// 移动目录
+const moveModalVisible = ref(false)
+const movingNode = ref({})
+const targetParentId = ref(null)
+const moveTreeData = ref([])
+
+// 排序目录
+const sortModalVisible = ref(false)
+const sortingNode = ref({})
+const sortValue = ref(0)
+
+/**
+ * 显示移动目录模态框
+ * @param item 当前节点
+ */
+function moveTree(item) {
+    console.log('moveTree item:', item)  
+    movingNode.value = { ...item }
+    targetParentId.value = item.parent_id || null
+    // 过滤掉当前节点及其子节点，构造可选择的目录树
+    moveTreeData.value = filterNodeAndChildren(menuData.value, item.id)
+    moveModalVisible.value = true
+}
+
+/**
+ * 过滤掉节点及其子节点
+ */
+function filterNodeAndChildren(nodes, excludeId) {
+    return nodes
+        .filter(node => node.id !== excludeId)
+        .map(node => ({
+            ...node,
+            children: node.children ? filterNodeAndChildren(node.children, excludeId) : []
+        }))
+}
+
+/**
+ * 确认移动
+ */
+async function confirmMove() {
+    try {
+        const params = {
+            id: movingNode.value.id,
+            parent_id: targetParentId.value || null,
+            project_id: project_id
+        }
+        const res = await api.update(params)
+        if (res.data.code === 200) {
+            ElMessage.success('移动成功')
+            moveModalVisible.value = false
+            loadData()
+        }
+    } catch (error) {
+        console.error('移动目录失败', error)
+        ElMessage.error('移动目录失败')
+    }
+}
+
+
+/**
+ * 显示排序模态框
+ * @param item 当前节点
+ */
+function sortTree(item) {
+    sortingNode.value = { ...item }
+    sortValue.value = item.sort_order || 0
+    sortModalVisible.value = true
+}
+
+/**
+ * 确认排序
+ */
+async function confirmSort() {
+    try {
+        const params = {
+            id: sortingNode.value.id,
+            sort_order: sortValue.value,
+            project_id: project_id
+        }
+        const res = await api.update(params)
+        if (res.data.code === 200) {
+            ElMessage.success('排序成功')
+            sortModalVisible.value = false
+            loadData()
+        }
+    } catch (error) {
+        console.error('排序失败', error)
+        ElMessage.error('排序失败')
+    }
+}
+
 /**
  * 显示添加目录模态框
  * @param item
  */
 function addTree(item) {
     console.log('addTree item', item)
-    addOrEditForm.value.name = ''
-    addOrEditForm.value.parent_id = item.id
+    addOrEditForm.value = {
+        name: '',
+        parent_id: item.id
+    }
     addOrEditModalVisible.value = true
-    addOrEditModalTitle.value = '添加目录'
+    addOrEditModalTitle.value = '添加子目录'
 }
 /**
  * 添加根目录
  */
 async function addTreeRoot() {
     console.log('addTreeRoot')
-    addOrEditForm.value.name = ''
-    addOrEditForm.value.parent_id = null
+    addOrEditForm.value = {
+        name: '',
+        parent_id: null
+    }
     addOrEditModalVisible.value = true
     addOrEditModalTitle.value = '添加根目录'
 }
@@ -280,20 +435,24 @@ async function saveTree() {
         return
     }
     try {
-        let params = {
-            project_id: project_id,
-            parent_id: addOrEditForm.value.parent_id,
-            name: addOrEditForm.value.name,
-        }
         let res
         if (addOrEditForm.value.id) {
             // 编辑保存
-            params.id = addOrEditForm.value.id
-            // 编辑保存时，需要将编辑器中的内容赋值到params中
-            params.content = vditorEditor.value.getValue()
+            const params = {
+                id: addOrEditForm.value.id,
+                project_id: project_id,
+                parent_id: addOrEditForm.value.parent_id,
+                name: addOrEditForm.value.name,
+                content: vditorEditor.value.getValue()
+            }
             res = await api.update(params)
         } else {
-            // 添加保存
+            // 添加保存 - 只传project_id、parent_id、name，绝对不传id
+            const params = {
+                project_id: project_id,
+                parent_id: addOrEditForm.value.parent_id || null,
+                name: addOrEditForm.value.name
+            }
             res = await api.insert(params)
         }
 
@@ -364,6 +523,8 @@ function handleNodeClick(node, data) {
     }
     // 点击节点后，将节点的name赋值到curMenuName.value中
     curMenuName.value = node.source.name
+    // 记录当前选中节点ID
+    currentNodeId.value = node.source.id
 
     // 给ai_suggest赋值
     if (node.source.ai_suggest && node.source.ai_suggest != 'null') {
@@ -371,6 +532,32 @@ function handleNodeClick(node, data) {
         ai_suggest.value = JSON.parse(node.source.ai_suggest || '{}')
     } else {
         ai_suggest.value = {}
+    }
+}
+
+/**
+ * 处理节点下拉菜单命令
+ * @param command 命令类型：add/edit/move/delete
+ * @param node 节点对象
+ * @param source 节点源数据
+ */
+function handleNodeCommand(command, node, source) {
+    switch (command) {
+        case 'add':
+            addTree(source)
+            break
+        case 'edit':
+            editTree(source)
+            break
+        case 'sort':
+            sortTree(source)
+            break
+        case 'move':
+            moveTree(source)
+            break
+        case 'delete':
+            removeTree(node, source)
+            break
     }
 }
 
@@ -688,6 +875,57 @@ onMounted(() => {
     padding-right: 8px;
 }
 
+
+.node-action-dropdown {
+    cursor: pointer;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    color: #909399;
+    transition: all 0.2s;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+.custom-tree-node:hover .action-btn,
+.node-action-dropdown.is-focus .action-btn,
+.node-action-dropdown.el-dropdown--open .action-btn,
+.node-selected .action-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.node-selected {
+    background-color: #ecf5ff;
+    border-radius: 4px;
+}
+
+.node-selected .single-line-overflow {
+    color: #409eff;
+    font-weight: 500;
+}
+
+.action-btn:hover {
+    background-color: #ecf5ff;
+    color: #409eff;
+}
+
+.el-dropdown-menu__item--divided {
+    border-top: 1px solid #ebeef5;
+    margin: 0;
+    padding: 5px 0;
+}
+
+.el-dropdown-menu__item--divided i {
+    color: #f56c6c;
+}
+
 /* 单行文本溢出隐藏并显示省略号 */
 .single-line-overflow {
     /* 1. 强制文本在一行内显示（不换行），核心属性 */
@@ -697,7 +935,10 @@ onMounted(() => {
     /* 3. 用省略号...替代超出部分的文本（仅在单行生效） */
     text-overflow: ellipsis;
     /* 4. 设置宽度，超出宽度部分将显示省略号 */
-    width: 100px;
+    flex: 1;
+    min-width: 0;
+    max-width: 220px;
+    margin-right: 8px;
 }
 
 /* 处理对齐 */
