@@ -11,7 +11,9 @@
                             :expand-on-click-node="false" @node-click="handleNodeClick" @check="handleCheck">
                             <template #default="{ node, data }">
                                 <div class="custom-tree-node">
-                                    <span class="single-line-overflow">{{ node.label }}</span>
+                                    <el-tooltip :content="node.label" placement="top" effect="dark" :disabled="!isTextOverflow(node.label)">
+                                        <span class="single-line-overflow">{{ node.label }}</span>
+                                    </el-tooltip>
                                     <div>
                                         <el-button type="primary" link @click.stop="viewTree(data.source)">
                                             查看
@@ -62,29 +64,31 @@
                         </div>
                     </template>
 
-                    <el-table v-loading="loading" :data="testcaseList" border stripe ref="tableRef">
-                        <el-table-column type="selection" width="40" align="center" />
-                        <el-table-column label="ID" prop="id" width="60" align="center" />
-                        <el-table-column label="用例名称" prop="name" min-width="180">
-                            <template #default="{ row }">
-                                <el-button link type="primary" @click="handleView(row)">
-                                    {{ row.name }}
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="优先级" prop="priority" width="80" align="center">
-                        </el-table-column>
-                        <el-table-column label="操作" width="140" align="center">
-                            <template #default="{ row }">
-                                <el-button size="small" type="primary" @click="handleEdit(row)">
-                                    编辑
-                                </el-button>
-                                <el-button size="small" type="danger" @click="handleDelete(row)">
-                                    删除
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
+                    <el-scrollbar height="476px">
+                        <el-table v-loading="loading" :data="testcaseList" border stripe ref="tableRef">
+                            <el-table-column type="selection" width="40" align="center" />
+                            <el-table-column label="ID" prop="id" width="60" align="center" />
+                            <el-table-column label="用例名称" prop="name" min-width="180">
+                                <template #default="{ row }">
+                                    <el-button link type="primary" @click="handleView(row)">
+                                        {{ row.name }}
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="优先级" prop="priority" width="80" align="center">
+                            </el-table-column>
+                            <el-table-column label="操作" width="140" align="center">
+                                <template #default="{ row }">
+                                    <el-button size="small" type="primary" @click="handleEdit(row)">
+                                        编辑
+                                    </el-button>
+                                    <el-button size="small" type="danger" @click="handleDelete(row)">
+                                        删除
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </el-scrollbar>
                     <!-- 分页 -->
                     <div class="pagination-container">
                         <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize"
@@ -209,6 +213,29 @@ const project_id = sessionStorage.getItem('project_id')
 const hint = ref('')
 // 当前选中的菜单名称
 const curMenuName = ref('')
+
+/**
+ * 判断文本是否溢出（用于控制tooltip显示）
+ * @param label 目录名称
+ * @returns true-文本溢出需要显示tooltip，false-不需要显示
+ */
+function isTextOverflow(label) {
+    // 按字符估算：160px宽度大约能容纳25个汉字或50个英文字符
+    // 加上适当的冗余系数确保准确
+    if (!label) return false;
+    // 中文字符按2个字符宽度计算，英文按1个计算
+    let width = 0;
+    for (let i = 0; i < label.length; i++) {
+        if (label.charCodeAt(i) > 127) {
+            width += 2;
+        } else {
+            width += 1;
+        }
+    }
+    // 160px容器，字体14px，约可容纳28个全角字符 ≈ 56宽度单位
+    return width > 52;
+}
+
 // 当前选中的模块ID
 const curModuleId = ref('')
 
@@ -246,7 +273,7 @@ async function loadTestCases() {
 // 查询参数
 const queryParams = ref({
     page: 1,
-    pageSize: 10,
+    pageSize: 20,
     project_id: project_id,
     module_id: curModuleId.value,
 })
@@ -763,10 +790,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.el-aside {
+/* 容器高度锁定在main内，不溢出 */
+.el-container {
     height: 100%;
-    padding: 10px;
-    border-radius: 35px
+    overflow: hidden;
+}
+
+.el-row {
+    height: 100%;
+    overflow: hidden;
 }
 
 .tree-panel {
@@ -785,13 +817,13 @@ onMounted(() => {
     border-bottom: 1px #3b82f680 solid;
 }
 
+/* 父容器相对定位，确保所有节点查看按钮在同一垂直线 */
 .custom-tree-node {
-    flex: 1;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    font-size: 14px;
-    padding-right: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 /* 单行文本溢出隐藏并显示省略号 */
@@ -802,15 +834,139 @@ onMounted(() => {
     overflow: hidden;
     /* 3. 用省略号...替代超出部分的文本（仅在单行生效） */
     text-overflow: ellipsis;
-    /* 4. 设置宽度，超出宽度部分将显示省略号 */
-    width: 170px;
+    /* 4. 弹性填充剩余空间，按钮右对齐 */
+    flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 50px);
+    padding-right: 8px;
 }
 
-/* 处理对齐 */
-.el-main {
-    flex-basis: 0 !important;
-    padding: 10px;
+/* 查看按钮固定在右侧，所有节点对齐 */
+.custom-tree-node > div {
+    flex-shrink: 0;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
+
+/* el-main自然填充父容器，不出滚动条 */
+.el-main {
+    --el-main-padding: 10px;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 主表格卡片弹性撑满（排除query-card） */
+.el-card:not(.query-card) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* el-card__body改为flex列布局，整体不出滚动条 */
+.el-card:not(.query-card) :deep(.el-card__body) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* el-table弹性占满 */
+.el-card:not(.query-card) :deep(.el-table) {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* el-table__body-wrapper单独出滚动条（只滚动表格行，表头不动） */
+.el-card:not(.query-card) :deep(.el-table__body-wrapper) {
+    overflow-y: auto !important;
+    flex: 1;
+}
+
+/* 🎨 美化滚动条 —— el-table__body-wrapper */
+.el-card:not(.query-card) :deep(.el-table__body-wrapper)::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.el-card:not(.query-card) :deep(.el-table__body-wrapper)::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 3px;
+}
+
+.el-card:not(.query-card) :deep(.el-table__body-wrapper)::-webkit-scrollbar-thumb {
+    background: #c1c6cd;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.el-card:not(.query-card) :deep(.el-table__body-wrapper)::-webkit-scrollbar-thumb:hover {
+    background: #909399;
+}
+
+/* query-card提示词卡片固定高度，不用滚动 */
+.query-card {
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    height: auto;
+}
+
+.query-card :deep(.el-card__body) {
+    overflow: visible;
+}
+
+/* aside树容器单独出滚动条 */
+.el-aside {
+    height: 100%;
+    padding: 10px;
+    border-radius: 38px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tree-panel {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+.tree-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+/* 美化树容器滚动条 */
+.tree-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.tree-container::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 3px;
+}
+
+.tree-container::-webkit-scrollbar-thumb {
+    background: #c1c6cd;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.tree-container::-webkit-scrollbar-thumb:hover {
+    background: #909399;
+}
+
 
 .card-header {
     display: flex;
@@ -826,15 +982,13 @@ onMounted(() => {
     margin-right: 10px;
 }
 
-.query-card {
-    margin-bottom: 10px;
-}
-
 .action-buttons {
     margin-bottom: 10px;
 }
 
+/* 分页固定在底部 */
 .pagination-container {
+    flex-shrink: 0;
     margin-top: 15px;
     display: flex;
     justify-content: flex-end;

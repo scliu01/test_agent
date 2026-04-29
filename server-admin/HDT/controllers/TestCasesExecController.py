@@ -60,7 +60,7 @@ def queryByPage():
         print(f"接收到的参数：{request.json}")
         # 分页查询
         page = request.json.get("page", 1)
-        page_size = request.json.get("pageSize", 10)
+        page_size = request.json.get("pageSize", 20)
         project_id = request.json.get("project_id")
 
         # 确保page和page_size是整数类型
@@ -69,7 +69,7 @@ def queryByPage():
             page_size = int(page_size)
         except (ValueError, TypeError):
             page = 1
-            page_size = 10
+            page_size = 20
         if not project_id:
             return respModel().error_resp(msg="项目ID不能为空")
         with app_server.app_context():

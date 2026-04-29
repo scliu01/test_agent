@@ -67,11 +67,17 @@ class DocumentApi {
 		// onMessage, onError, onComplete都是对应的处理函数，分别处理流数据、错误和完成的情况
 		const { onMessage, onError, onComplete, signal } = options;
 
+		// 手动添加Authorization token
+		const headers = {
+			'Content-Type': 'application/json',
+		};
+		const token = localStorage.getItem('access_token');
+		if (token) {
+			headers['Authorization'] = `Bearer ${token}`;
+		}
 		return fetch(`/api/${module_name}/process_with_ai_stream`, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
+			headers,
 			body: JSON.stringify(data),
 			signal,
 			// 关键：保持连接，不缓存响应

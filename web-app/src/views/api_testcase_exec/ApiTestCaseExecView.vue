@@ -56,20 +56,22 @@
                         </div>
                     </template>
 
-                    <el-table v-loading="loading" :data="testcaseList" border stripe ref="tableRef"
-                        :row-key="getRowKey">
-                        <el-table-column type="selection" width="40" align="center" :reserve-selection="true" />
-                        <el-table-column label="ID" prop="id" width="60" align="center" />
-                        <el-table-column label="优先级" prop="priority" width="80" align="center">
-                        </el-table-column>
-                        <el-table-column label="用例名称" prop="name" min-width="180">
-                            <template #default="{ row }">
-                                <el-button link type="primary" @click="handleView(row)">
-                                    {{ row.name }}
-                                </el-button>
-                            </template>
-                        </el-table-column>
-                    </el-table>
+                    <el-scrollbar height="500px">
+                        <el-table v-loading="loading" :data="testcaseList" border stripe ref="tableRef"
+                            :row-key="getRowKey">
+                            <el-table-column type="selection" width="40" align="center" :reserve-selection="true" />
+                            <el-table-column label="ID" prop="id" width="60" align="center" />
+                            <el-table-column label="优先级" prop="priority" width="80" align="center">
+                            </el-table-column>
+                            <el-table-column label="用例名称" prop="name" min-width="180">
+                                <template #default="{ row }">
+                                    <el-button link type="primary" @click="handleView(row)">
+                                        {{ row.name }}
+                                    </el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </el-scrollbar>
                     <!-- 分页 -->
                     <div class="pagination-container">
                         <el-pagination v-model:current-page="queryParams.page" v-model:page-size="queryParams.pageSize"
@@ -199,7 +201,7 @@ async function loadTestCases() {
 // 查询参数
 const queryParams = reactive({
     page: 1,
-    pageSize: 10,
+    pageSize: 20,
     project_id: project_id,
     name: '',
     priority: null,
@@ -360,53 +362,24 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.el-aside {
+/* 容器高度锁定在main内，不溢出 */
+.el-container {
     height: 100%;
-    padding: 10px;
-    border-radius: 35px
-}
-
-.tree-panel {
-    width: 100%;
-    height: 100%;
-    background-color: white;
-}
-
-.tree-header {
-    width: 100%;
-    background-color: white;
-    display: flex;
-    justify-content: center;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px #3b82f680 solid;
-}
-
-.custom-tree-node {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 14px;
-    padding-right: 8px;
-}
-
-/* 单行文本溢出隐藏并显示省略号 */
-.single-line-overflow {
-    /* 1. 强制文本在一行内显示（不换行），核心属性 */
-    white-space: nowrap;
-    /* 2. 超出容器部分隐藏（不显示滚动条，不溢出容器） */
     overflow: hidden;
-    /* 3. 用省略号...替代超出部分的文本（仅在单行生效） */
-    text-overflow: ellipsis;
-    /* 4. 设置宽度，超出宽度部分将显示省略号 */
-    width: 170px;
 }
 
-/* 处理对齐 */
+.el-row {
+    height: 100%;
+    overflow: hidden;
+}
+
+/* el-main自然填充父容器，不出滚动条 */
 .el-main {
-    flex-basis: 0 !important;
-    padding: 10px;
+    --el-main-padding: 10px;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .card-header {
@@ -434,9 +407,64 @@ onMounted(() => {
     gap: 10px;
 }
 
+/* 主表格卡片弹性撑满（排除query-card） */
+.el-card:not(.query-card) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* el-card__body改为flex列布局，整体不出滚动条 */
+.el-card:not(.query-card) :deep(.el-card__body) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* el-table弹性占满 */
+.el-card:not(.query-card) :deep(.el-table) {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* el-table__body-wrapper单独出滚动条（只滚动表格行，表头不动） */
+.el-card:not(.query-card) :deep(.el-table__body-wrapper) {
+    overflow-y: auto !important;
+    flex: 1;
+}
+
+/* 🎨 美化滚动条 —— el-table__body-wrapper */
+.el-card:not(.query-card) :deep(.el-table__body-wrapper)::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.el-card:not(.query-card) :deep(.el-table__body-wrapper)::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 3px;
+}
+
+.el-card:not(.query-card) :deep(.el-table__body-wrapper)::-webkit-scrollbar-thumb {
+    background: #c1c6cd;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.el-card:not(.query-card) :deep(.el-table__body-wrapper)::-webkit-scrollbar-thumb:hover {
+    background: #909399;
+}
+
+/* 分页器固定在卡片底部 */
 .pagination-container {
-    margin-top: 15px;
+    margin-top: auto;
+    padding-top: 15px;
     display: flex;
     justify-content: flex-end;
+    flex-shrink: 0;
 }
 </style>

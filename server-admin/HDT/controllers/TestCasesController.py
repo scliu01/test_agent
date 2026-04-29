@@ -55,7 +55,7 @@ def queryByPage():
         print(f"接收到的参数：{request.json}")
         # 分页查询
         page = request.json.get("page", 1)
-        page_size = request.json.get("pageSize", 10)
+        page_size = request.json.get("pageSize", 20)
         project_id = request.json.get("project_id")
         module_id = request.json.get("module_id")
         name = request.json.get("name")
@@ -68,7 +68,7 @@ def queryByPage():
             page_size = int(page_size)
         except (ValueError, TypeError):
             page = 1
-            page_size = 10
+            page_size = 20
 
         with app_server.app_context():
             # 构建查询条件

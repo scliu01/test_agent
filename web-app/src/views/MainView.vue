@@ -80,19 +80,42 @@ function goBack() {
 }
 </script>
 <style scoped>
+/* 最外层容器固定高度，干掉全局滚动条 */
 .el-container {
-    /* vh 100% 浏览器可见区域高度 */
-    height: 100vh;
+    height: 100vh !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
 }
 
-/* 样式重写 */
+/* Header固定80px，永不压缩 */
 .el-header {
     background-color: #222529;
-    /* height: 80px; */
-    /* 设置弹性盒子 */
+    height: 80px !important;
+    flex-shrink: 0;
     display: flex;
-    /* 设置元素垂直居中 */
     align-items: center;
+}
+
+/* ✨ Main：填充剩下所有高度，不多不少！ */
+.el-main {
+    flex: 1 !important;
+    height: calc(100vh - 80px - 80px) !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+.main-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Footer固定80px，永不压缩 */
+.el-footer {
+    flex-shrink: 0;
+    height: 50px !important;
+    background-color: #f5f7fa;
 }
 
 .logo-container {

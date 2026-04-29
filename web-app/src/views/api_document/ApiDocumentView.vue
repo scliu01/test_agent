@@ -17,7 +17,9 @@
                             :expand-on-click-node="false" @node-click="handleNodeClick" @check="handleCheck">
                             <template #default="{ node, data }">
                                 <div class="custom-tree-node" :class="{ 'node-selected': data.source.id === currentNodeId }">
-                                    <span class="single-line-overflow">{{ node.label }}</span>
+                                    <el-tooltip :content="node.label" placement="top" effect="dark" :disabled="!isTextOverflow(node.label)">
+                                        <span class="single-line-overflow">{{ node.label }}</span>
+                                    </el-tooltip>
                                     <el-dropdown trigger="click" @command="(command) => handleNodeCommand(command, node, data.source)" class="node-action-dropdown">
                                         <span class="action-btn">
                                             <svg width="1em" height="1em" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" class="more-icon" style="width: 16px; min-width: 16px; height: 16px;">
@@ -433,6 +435,28 @@ async function removeTree(node, item) {
 }
 
 const curMenuName = ref('')
+
+/**
+ * 判断文本是否溢出（用于控制tooltip显示）
+ * @param label 目录名称
+ * @returns true-文本溢出需要显示tooltip，false-不需要显示
+ */
+function isTextOverflow(label) {
+    // 按字符估算：160px宽度大约能容纳25个汉字或50个英文字符
+    // 加上适当的冗余系数确保准确
+    if (!label) return false;
+    // 中文字符按2个字符宽度计算，英文按1个计算
+    let width = 0;
+    for (let i = 0; i < label.length; i++) {
+        if (label.charCodeAt(i) > 127) {
+            width += 2;
+        } else {
+            width += 1;
+        }
+    }
+    // 160px容器，字体14px，约可容纳28个全角字符 ≈ 56宽度单位
+    return width > 52;
+}
 
 /**
  * 处理节点点击事件
@@ -851,6 +875,17 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* MainView已处理全局高度，这里直接充满父容器 */
+.el-container {
+    height: 100%;
+    overflow: hidden;
+}
+
+.el-row {
+    height: 100%;
+    overflow: hidden;
+}
+
 .el-aside {
     height: 100%;
     padding: 10px;
@@ -861,6 +896,41 @@ onMounted(() => {
     width: 100%;
     height: 100%;
     background-color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 树容器单独滚动 */
+.tree-container {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+}
+
+/* 美化滚动条 */
+.tree-container::-webkit-scrollbar,
+.el-main ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.tree-container::-webkit-scrollbar-track,
+.el-main ::-webkit-scrollbar-track {
+    background: #f1f3f4;
+    border-radius: 3px;
+}
+
+.tree-container::-webkit-scrollbar-thumb,
+.el-main ::-webkit-scrollbar-thumb {
+    background: #c1c6cd;
+    border-radius: 3px;
+    transition: all 0.2s;
+}
+
+.tree-container::-webkit-scrollbar-thumb:hover,
+.el-main ::-webkit-scrollbar-thumb:hover {
+    background: #909399;
 }
 
 .tree-header {
@@ -873,13 +943,13 @@ onMounted(() => {
     border-bottom: 1px #3b82f680 solid;
 }
 
+/* 使用flex布局确保按钮不挤压 */
 .custom-tree-node {
-    flex: 1;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    font-size: 14px;
-    padding-right: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 /* 单行文本溢出隐藏并显示省略号 */
@@ -894,11 +964,17 @@ onMounted(() => {
     flex: 1;
     min-width: 0;
     max-width: 220px;
-    margin-right: 8px;
+    padding-right: 0;
+    max-width: calc(100% - 40px);
+    padding-right: 8px;
 }
 
+/* 操作按钮靠最右侧，固定不收缩，确保对齐 */
 .node-action-dropdown {
-    cursor: pointer;
+    flex-shrink: 0;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
 
 .action-btn {
@@ -940,6 +1016,8 @@ onMounted(() => {
 .node-selected .single-line-overflow {
     color: #409eff;
     font-weight: 500;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .el-dropdown-menu__item--divided {
@@ -952,10 +1030,32 @@ onMounted(() => {
     color: #f56c6c;
 }
 
-/* 处理对齐 */
+/* 主内容区单独滚动，锁住高度 */
 .el-main {
     flex-basis: 0 !important;
     padding: 10px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.el-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.el-card :deep(.el-card__body) {
+    flex: 1;
+    overflow: hidden;
+    padding-right: 4px;
+    height: 1px;
+}
+
+/* Vditor编辑器单独出滚动条 */
+#editor {
+    height: 100% !important;
+    overflow-y: auto;
 }
 
 .card-header {

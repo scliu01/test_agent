@@ -65,11 +65,17 @@ class ApiTestCaseApi {
 	processWithAIStream(data, options = {}) {
 		const { onMessage, onError, onComplete, signal } = options;
 
+		// 手动添加Authorization token
+		const headers = {
+			'Content-Type': 'application/json',
+		};
+		const token = localStorage.getItem('access_token');
+		if (token) {
+			headers['Authorization'] = `Bearer ${token}`;
+		}
 		return fetch(`/api/${module_name}/process_with_ai_stream`, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
+			headers,
 			body: JSON.stringify(data),
 			signal,
 		}).then(async (response) => {
