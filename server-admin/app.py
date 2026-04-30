@@ -140,5 +140,5 @@ if __name__ == '__main__':
     # debug=True：以debug的方式运行程序，当代码改动后，会自动更新服务
     # host="0.0.0.0"：设置服务的访问方式，0.0.0.0表示使用127.0.0.1、localhost和局域网IP访问
     # port=5000：指定端口号
-    # app_server.run(debug=True, use_reloader=False, host="0.0.0.0", port=5001)
+    # app_server.run(debug=True, use_reloader=False, host="0.0.0.0", port=5001) # debug调试
     app_server.run(debug=True, host="0.0.0.0", port=5001)

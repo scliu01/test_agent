@@ -7,14 +7,14 @@
                         <el-button type="primary" @click="addTreeRoot">
                             <i class="fas fa-plus me-1"></i> 添加根目录
                         </el-button>
-                        <el-button type="primary" @click="importModalVisible = true">
+                        <el-button type="primary" @click="handleImportClick">
                             <i class="fas fa-file-import me-1"></i> 导入文档
                         </el-button>
                     </div>
                     <div class="tree-container">
                         <el-tree ref="menuTree" style="max-width: 600px" :data="menuData" show-checkbox node-key="id"
                             :check-on-click-node="false" :check-on-click-leaf="false"
-                            :expand-on-click-node="false" @node-click="handleNodeClick" @check="handleCheck">
+                            :expand-on-click-node="false" :check-strictly="true" @node-click="handleNodeClick" @check="handleCheck">
                             <template #default="{ node, data }">
                                 <div class="custom-tree-node" :class="{ 'node-selected': data.source.id === currentNodeId }">
                                     <el-tooltip :content="node.label" placement="top" effect="dark" :disabled="!isTextOverflow(node.label)">
@@ -82,6 +82,9 @@
         <el-form :model="addOrEditForm" label-width="80px" @submit.prevent="saveTree">
             <el-form-item label="名称" prop="name" required>
                 <el-input v-model="addOrEditForm.name" placeholder="请输入名称" />
+            </el-form-item>
+            <el-form-item label="排序值" prop="sort_order">
+                <el-input-number v-model="addOrEditForm.sort_order" :min="0" :max="9999" style="width: 100%;" />
             </el-form-item>
         </el-form>
 
@@ -294,6 +297,7 @@ const addOrEditModalVisible = ref(false)
 const addOrEditModalTitle = ref('添加目录')
 const addOrEditForm = ref({
     name: '',
+    sort_order: 1,
 })
 
 // 移动目录
@@ -395,7 +399,8 @@ function addTree(item) {
     console.log('addTree item', item)
     addOrEditForm.value = {
         name: '',
-        parent_id: item.id
+        parent_id: item.id,
+        sort_order: 1,
     }
     addOrEditModalVisible.value = true
     addOrEditModalTitle.value = '添加子目录'
@@ -407,7 +412,8 @@ async function addTreeRoot() {
     console.log('addTreeRoot')
     addOrEditForm.value = {
         name: '',
-        parent_id: null
+        parent_id: null,
+        sort_order: 1,
     }
     addOrEditModalVisible.value = true
     addOrEditModalTitle.value = '添加根目录'
@@ -445,15 +451,17 @@ async function saveTree() {
                 project_id: project_id,
                 parent_id: addOrEditForm.value.parent_id,
                 name: addOrEditForm.value.name,
+                sort_order: addOrEditForm.value.sort_order,
                 content: vditorEditor.value.getValue()
             }
             res = await api.update(params)
         } else {
-            // 添加保存 - 只传project_id、parent_id、name，绝对不传id
+            // 添加保存
             const params = {
                 project_id: project_id,
                 parent_id: addOrEditForm.value.parent_id || null,
-                name: addOrEditForm.value.name
+                name: addOrEditForm.value.name,
+                sort_order: addOrEditForm.value.sort_order,
             }
             res = await api.insert(params)
         }
@@ -467,6 +475,7 @@ async function saveTree() {
             addOrEditModalVisible.value = false
             addOrEditForm.value = {
                 name: '',
+                sort_order: 1,
             }
         }
     } catch (error) {
@@ -610,6 +619,10 @@ const confirmImportDocument = async () => {
         formData.append('project_id', project_id)
         formData.append('replace_existing', replaceExisting.value ? 'true' : 'false')
         formData.append('max_level', headingLevels.value)
+        // 如果勾选了1个父目录，将其ID作为parent_id传入
+        if (selectedNodes.value.length === 1) {
+            formData.append('parent_id', selectedNodes.value[0])
+        }
 
         const res = await api.importDocument(formData)
         console.log('导入文档响应:', res)
@@ -790,6 +803,18 @@ function showAiDialog() {
 
 // 保存选中的节点
 const selectedNodes = ref([])
+
+/**
+ * 点击导入文档按钮时的处理
+ * 勾选0个或1个时正常打开弹窗，勾选多个时提示"只能选择一个父目录"
+ */
+function handleImportClick() {
+    if (selectedNodes.value.length > 1) {
+        ElMessage.warning('只能选择一个父目录')
+        return
+    }
+    importModalVisible.value = true
+}
 /**
  * 处理树节点选中状态改变
  * @param {Object} data - 节点数据

@@ -133,9 +133,14 @@ def import_document():
     try:
         print("接收到的参数：", request.form)
         # 参数处理
-        replace_existing = request.form.get('replace_existing', 'false').lower() == 'true'
+        replace_existing = request.form.get('replace_existing', 'false').lower() == 'true'  # 是否替换已有数据
         max_level = int(request.form.get('max_level', 3))
         project_id = int(request.form.get('project_id', None))
+        parent_id_param = request.form.get('parent_id', None)
+        if parent_id_param is not None and parent_id_param != '':
+            parent_id_param = int(parent_id_param)
+        else:
+            parent_id_param = None
 
         # 清理现有数据（如果需要）
         if replace_existing:
@@ -177,32 +182,39 @@ def import_document():
         print(f"文档数量{len(md_splits)}")
         # 创建一个指定长度 初始为None 的列表
         parent_infos = [None] * (max_level - 1)
-
-        with app_server.app_context():
-            for i, md_split in enumerate(md_splits):
-                metadata = md_split.metadata
-                markdown_text = md_split.page_content
-                text_content = generate_image_uuid(markdown_text)
+        sort_order = 1
+        with app_server.app_context():  # 创建数据库会话
+            for i, md_split in enumerate(md_splits):  # 遍历每个文档
+                metadata = md_split.metadata  # 获取文档的元数据
+                markdown_text = md_split.page_content  # 获取文档的文本内容
+                # print(f"markdown_text：{markdown_text}")
+                text_content = generate_image_uuid(markdown_text)  # 替换图片
 
                 # 检查是否需要创建父级节点
-                level_size = len(metadata)
-                if level_size == 0:
+                level_size = len(metadata)  # 获取元数据中层级的个数
+                if level_size == 0:  # 如果没有层级，则跳过
                     continue
 
+                # 找到当前节点的层级（从metadata中获取最大的层级数字）
+                current_level = max([int(k.split('-')[1]) for k in metadata.keys()])
+
                 # 处理父标题的数据
-                for index in range(1, level_size):
-                    level_key = "level-" + str(index)
+                for index in range(1, current_level):  # 遍历每个层级
+                    level_key = "level-" + str(index)  # 获取层级的键
+                    if level_key not in metadata:
+                        continue
                     if parent_infos[index - 1] is None or metadata[level_key] != parent_infos[
                         index - 1].name:  # 如果父级节点名称不一致，则创建新的父级节点
                         print(f"创建父级节点：{metadata[level_key]}")
                         parent_id = None
-                        if index > 1:
-                            parent_id = parent_infos[index - 1].id
+                        if index > 1 and parent_infos[index - 2] is not None:
+                            parent_id = parent_infos[index - 2].id
                         data = module_model(**{
                             "id": None,
                             "project_id": project_id,
                             "name": metadata[level_key],
                             "parent_id": parent_id,
+                            "sort_order": sort_order,
                             "content": text_content,  # 由你的业务来决定
                         }, created_at=datetime.strftime(datetime.today(), '%Y-%m-%d %H:%M:%S'))
                         database.session.add(data)
@@ -213,21 +225,28 @@ def import_document():
 
                 # 创建当前节点
                 parent_id = None
-                if len(parent_infos) > 0:
-                    parent_id = parent_infos[level_size - 2].id
+                if parent_id_param is not None:
+                    # 如果传入了parent_id参数，使用传入的值
+                    parent_id = parent_id_param
+                elif current_level >= 2:
+                    # 否则按原规则计算父节点ID
+                    parent_index = current_level - 2
+                    if parent_index < len(parent_infos) and parent_infos[parent_index] is not None:
+                        parent_id = parent_infos[parent_index].id
                 data = module_model(**{
                     "id": None,
                     "project_id": project_id,
-                    "name": metadata[f'level-{level_size}'],
+                    "name": metadata[f'level-{current_level}'],
                     "parent_id": parent_id,
+                    "sort_order": sort_order,
                     "content": text_content,
                     "ai_suggest": "{}",
                 }, created_at=datetime.strftime(datetime.today(), '%Y-%m-%d %H:%M:%S'))
-                print(f" project_id: {project_id}")
+                print(f" project_id: {project_id}, parent_id: {parent_id}")
                 database.session.add(data)
                 database.session.flush()
                 # print(f"父节点信息为：{parent_infos[level_size-2]}")
-                print(f"创建当前节点：{metadata[f'level-{level_size}']}")
+                print(f"创建当前节点：{metadata[f'level-{current_level}']}")
                 # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             # 不提交，数据是不会进行数据库中的
             database.session.commit()
